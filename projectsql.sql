@@ -46,7 +46,7 @@ create table course_section
 
 create table department
 (
-	dept_id integer not null
+	dept_id serial not null
 		constraint department_pk
 			primary key,
 	dept_name varchar(50) not null

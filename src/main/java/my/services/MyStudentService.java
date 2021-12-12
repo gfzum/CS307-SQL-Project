@@ -1,5 +1,6 @@
 package my.services;
 
+import cn.edu.sustech.cs307.database.SQLDataSource;
 import cn.edu.sustech.cs307.dto.Course;
 import cn.edu.sustech.cs307.dto.CourseSearchEntry;
 import cn.edu.sustech.cs307.dto.CourseTable;
@@ -8,7 +9,10 @@ import cn.edu.sustech.cs307.dto.grade.Grade;
 import cn.edu.sustech.cs307.service.StudentService;
 
 import javax.annotation.Nullable;
+import java.sql.Connection;
 import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +20,18 @@ import java.util.Map;
 public class MyStudentService implements StudentService {
     @Override
     public void addStudent(int userId, int majorId, String firstName, String lastName, Date enrolledDate) {
+
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
+             PreparedStatement stmt = connection.prepareStatement("insert into student(student_id, first_name, last_name, " +
+                     "enrolled_date, major_id) values (?,?,?,?,?)")) {
+             stmt.setInt(1,userId);
+             stmt.setDate(4,enrolledDate);
+             stmt.setInt(5,majorId);
+             
+//            stmt.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
     }
 
