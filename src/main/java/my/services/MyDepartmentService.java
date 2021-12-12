@@ -63,7 +63,7 @@ public class MyDepartmentService implements DepartmentService{
             return list;
 
         } catch (SQLException e){
-            e.printStackTrace();
+            e.printStackTrace();//todo exception
         }
 
         return null;
