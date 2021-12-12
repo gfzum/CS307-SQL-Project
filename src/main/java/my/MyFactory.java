@@ -10,7 +10,7 @@ public class MyFactory extends ServiceFactory {
     public MyFactory() {
         super();
         registerService(CourseService.class, new MyCourseService());
-        //abc
+        //hhlkj
     }
 
     @Override
