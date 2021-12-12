@@ -1,0 +1,4 @@
+department
+
+addDepartment中，发现接口中定义的方法没有传入id参数，而json文件中department数据中包含id属性，且其从1开始递增，故在建表时将dept_id设置为自增。
+
