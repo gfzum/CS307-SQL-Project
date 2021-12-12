@@ -6,7 +6,7 @@ import cn.edu.sustech.cs307.service.SemesterService;
 import java.sql.Date;
 import java.util.List;
 
-public class MySemesterService implements SemesterService{
+public class MySemesterService implements SemesterService {
     @Override
     public int addSemester(String name, Date begin, Date end) {
         return 0;
