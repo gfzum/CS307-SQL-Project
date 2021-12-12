@@ -28,7 +28,7 @@ create unique index semester_semester_id_uindex
 
 create table course_section
 (
-	section_id integer not null
+	section_id serial not null
 		constraint course_section_pk
 			primary key,
 	section_name varchar(50) not null,
