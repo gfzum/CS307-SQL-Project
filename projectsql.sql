@@ -68,7 +68,7 @@ alter table instructor
 
 create table major
 (
-	major_id int not null
+	major_id serial not null
         constraint major_pk
             primary key,
 	major_name varchar(50) not null,
