@@ -14,8 +14,10 @@ public class MyDepartmentService implements DepartmentService{
     public int addDepartment(String name) {
 
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt = connection.prepareStatement("insert into department(n) values (?)")) {
-//            //stmt.setInt(23, 1);
+             PreparedStatement stmt = connection.prepareStatement(
+                     "insert into department(dept_name) values (?)")) {
+//           todo
+//            stmt.setInt(23, 1);
 //            stmt.setString(, name);
 //            stmt.execute();
         } catch (SQLException e) {
@@ -27,7 +29,15 @@ public class MyDepartmentService implements DepartmentService{
 
     @Override
     public void removeDepartment(int departmentId) {
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection()){
+            String sql = "delete from department where dept_id = ?";
+            PreparedStatement stm = connection.prepareStatement(sql);
+            stm.setInt(1,departmentId);
+            stm.executeUpdate();
 
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
     }
 
     @Override
