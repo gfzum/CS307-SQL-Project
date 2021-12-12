@@ -1,18 +1,13 @@
 package my.services;
 
 import cn.edu.sustech.cs307.database.SQLDataSource;
-import cn.edu.sustech.cs307.dto.Course;
-import cn.edu.sustech.cs307.dto.CourseSearchEntry;
-import cn.edu.sustech.cs307.dto.CourseTable;
-import cn.edu.sustech.cs307.dto.Major;
+import cn.edu.sustech.cs307.dto.*;
 import cn.edu.sustech.cs307.dto.grade.Grade;
+import cn.edu.sustech.cs307.exception.EntityNotFoundException;
 import cn.edu.sustech.cs307.service.StudentService;
 
 import javax.annotation.Nullable;
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.DayOfWeek;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +73,29 @@ public class MyStudentService implements StudentService {
 
     @Override
     public Major getStudentMajor(int studentId) {
+
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
+             PreparedStatement stmt = connection.prepareStatement(
+                     "select major_id, major_name, dept_id, dept_name\n" +
+                             "from major m\n" +
+                             "join department d on m.department_id = d.dept_id\n" +
+                             "join student s on m.major_id = s.major_id and s.student_id = ?")) {
+            stmt.setInt(1,studentId);
+            ResultSet rsst =stmt.executeQuery();
+            if(rsst.next()){
+                Major ret = new Major();
+                ret.id = rsst.getInt(1);
+                ret.name = rsst.getString(2);
+                ret.department = new Department();
+                ret.department.id = rsst.getInt(3);
+                ret.department.name = rsst.getString(4);
+                return ret;
+            }else{
+                throw new EntityNotFoundException();
+            }
+        } catch (SQLException e) {
+             e.printStackTrace();
+        }
         return null;
     }
 }
