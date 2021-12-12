@@ -15,7 +15,7 @@ public class MyDepartmentService implements DepartmentService{
 
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement("insert into department(n) values (?)")) {
-//            //stmt.setInt(23, 1);
+//            //stmt.setInt(2673, 1);
 //            stmt.setString(, name);
 //            stmt.execute();
         } catch (SQLException e) {
