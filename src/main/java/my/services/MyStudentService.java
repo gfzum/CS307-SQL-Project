@@ -25,10 +25,11 @@ public class MyStudentService implements StudentService {
              PreparedStatement stmt = connection.prepareStatement("insert into student(student_id, first_name, last_name, " +
                      "enrolled_date, major_id) values (?,?,?,?,?)")) {
              stmt.setInt(1,userId);
+             stmt.setString(2,firstName);
+             stmt.setString(3,lastName);
              stmt.setDate(4,enrolledDate);
              stmt.setInt(5,majorId);
-             
-//            stmt.execute();
+             stmt.execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
