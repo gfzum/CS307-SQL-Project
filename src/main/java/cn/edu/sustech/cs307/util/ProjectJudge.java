@@ -273,6 +273,8 @@ public final class ProjectJudge {
     }
 
     public static void main(String[] args) {
+//        Course.CourseGrading grading = Course.CourseGrading.HUNDRED_MARK_SCORE;
+//        System.out.println(grading.toString());
         ProjectJudge judge = new ProjectJudge();
         judge.benchmark();
     }
