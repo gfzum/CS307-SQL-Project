@@ -2,6 +2,8 @@ package my.services;
 
 import cn.edu.sustech.cs307.database.SQLDataSource;
 import cn.edu.sustech.cs307.dto.Department;
+import cn.edu.sustech.cs307.exception.EntityNotFoundException;
+import cn.edu.sustech.cs307.exception.IntegrityViolationException;
 import cn.edu.sustech.cs307.service.DepartmentService;
 
 import java.sql.Connection;
@@ -16,17 +18,19 @@ public class MyDepartmentService implements DepartmentService{
     public int addDepartment(String name) {
 
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt = connection.prepareStatement(
+             PreparedStatement st = connection.prepareStatement(
                      "insert into department(dept_name) values (?)")) {
-//           todo
-//            stmt.setInt(23, 1);
-//            stmt.setString(, name);
-//            stmt.execute();
+            st.setString(1, name);
+            st.executeUpdate();
+
+            ResultSet rs = st.getGeneratedKeys();
+            return rs.getInt(1);
+            //EntityNotFound?
+
         } catch (SQLException e) {
             e.printStackTrace();
+            throw new IntegrityViolationException();
         }
-
-        return 0;
     }
 
     @Override
@@ -40,6 +44,7 @@ public class MyDepartmentService implements DepartmentService{
 
         } catch (SQLException e){
             e.printStackTrace();
+            throw new EntityNotFoundException();
         }
     }
 
@@ -63,7 +68,7 @@ public class MyDepartmentService implements DepartmentService{
             return list;
 
         } catch (SQLException e){
-            e.printStackTrace();//todo exception
+            e.printStackTrace();
         }
 
         return null;
@@ -88,7 +93,7 @@ public class MyDepartmentService implements DepartmentService{
 
         } catch (SQLException e){
             e.printStackTrace();
+            throw new EntityNotFoundException();
         }
-        return null;
     }
 }

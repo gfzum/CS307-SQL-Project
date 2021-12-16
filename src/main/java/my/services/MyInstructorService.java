@@ -13,7 +13,8 @@ public class MyInstructorService implements InstructorService{
     @Override
     public void addInstructor(int userId, String firstName, String lastName) {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt = connection.prepareStatement("insert into instructor(instructor_id, first_name, last_name) " +
+             PreparedStatement stmt = connection.prepareStatement(
+                     "insert into instructor(instructor_id, first_name, last_name) " +
                      "values (?,?,?)")) {
             stmt.setInt(1,userId);
             stmt.setString(2,firstName);
