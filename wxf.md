@@ -3,3 +3,5 @@ department
 addDepartment中，发现接口中定义的方法没有传入id参数，而json文件中department数据中包含id属性，且其从1开始递增，故在建表时将dept_id设置为自增。
 同样的，major_id也是自增的。
 另外，考虑在查找返回时加入异常处理。
+
+dept_name unique 约束
