@@ -59,8 +59,8 @@ public class MyUserService implements UserService{
 
             while (rs2.next()){
                 User temp = new Instructor();
-                temp.id = rs1.getInt(1);
-                temp.fullName = getFullName(rs1.getString(2),rs1.getString(3));
+                temp.id = rs2.getInt(1);
+                temp.fullName = getFullName(rs2.getString(2),rs2.getString(3));
                 list.add(temp);
             }
             st2.close();
@@ -84,8 +84,8 @@ public class MyUserService implements UserService{
             ResultSet rs1 = st1.executeQuery();
 
             String sql2 = "select instructor_id, first_name, last_name from instructor where instructor_id = ?";
-            PreparedStatement st2 = connection.prepareStatement(sql);
-            st1.setInt(1, userId);
+            PreparedStatement st2 = connection.prepareStatement(sql2);
+            st2.setInt(1, userId);
             ResultSet rs2 = st2.executeQuery();
 
             User stu = new Student();

@@ -5,7 +5,8 @@ addDepartment中，发现接口中定义的方法没有传入id参数，而json�
 同样的，major_id,semester_id也是自增的。
 另外，考虑在查找返回时加入异常处理。
 
-dept_name 须添加unique 约束
+dept_name 须添加unique约束，并在addDepartment中根据该约束可能出现的错误进行IntegrityViolationException的抛出
+但对于 instructor_name，由于可能出现同名老师，故不须进行unique约束和异常抛出
 
 MyUserService 中的 removeUser 与 getUser方法，UserId应该同时面向student及instructor
 但由于建表时两者分开，故分别使用两条语句在两个表中进行对应id的检索。
