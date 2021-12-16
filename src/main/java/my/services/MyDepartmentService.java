@@ -22,6 +22,7 @@ public class MyDepartmentService implements DepartmentService{
                      "insert into department(dept_name) values (?)")) {
             st.setString(1, name);
             st.executeUpdate();
+            st.close();
 
             ResultSet rs = st.getGeneratedKeys();
             return rs.getInt(1);

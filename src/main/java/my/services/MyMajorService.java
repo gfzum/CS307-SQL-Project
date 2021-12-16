@@ -24,6 +24,7 @@ public class MyMajorService implements MajorService{
             st.setString(1, name);
             st.setInt(2, departmentId);
             st.executeUpdate();
+            st.close();
 
             ResultSet rs = st.getGeneratedKeys();
             return rs.getInt(1);
