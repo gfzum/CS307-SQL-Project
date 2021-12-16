@@ -3,7 +3,10 @@ package my.services;
 import cn.edu.sustech.cs307.database.SQLDataSource;
 import cn.edu.sustech.cs307.dto.*;
 import cn.edu.sustech.cs307.dto.grade.Grade;
+import cn.edu.sustech.cs307.dto.grade.HundredMarkGrade;
+import cn.edu.sustech.cs307.dto.grade.PassOrFailGrade;
 import cn.edu.sustech.cs307.exception.EntityNotFoundException;
+import cn.edu.sustech.cs307.exception.IntegrityViolationException;
 import cn.edu.sustech.cs307.service.StudentService;
 
 import javax.annotation.Nullable;
@@ -56,16 +59,57 @@ public class MyStudentService implements StudentService {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
 
+    private boolean getSectionGradeType(int sectionId){
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
+            PreparedStatement stmt = connection.prepareStatement(
+                    "select grading from course " +
+                            "join course_section cs on course.course_id = cs.course_id " +
+                            "where cs.section_id = ?")) {
+            stmt.setInt(1, sectionId);
+
+            ResultSet rsst = stmt.executeQuery();
+            if(rsst.next()){
+                return rsst.getInt(1) == 1;
+            }else
+                throw new IntegrityViolationException();
+
+        } catch (SQLException e) {
+            throw new IntegrityViolationException();
+        }
     }
 
     @Override
     public void addEnrolledCourseWithGrade(int studentId, int sectionId, @Nullable Grade grade) {
 
+
     }
 
     @Override
     public void setEnrolledCourseGrade(int studentId, int sectionId, Grade grade) {
+
+        Boolean sectionGradeType;
+        sectionGradeType = getSectionGradeType(sectionId);
+        if(sectionGradeType != grade instanceof PassOrFailGrade)
+            throw new IntegrityViolationException();
+
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
+             PreparedStatement stmt = connection.prepareStatement(
+                     "update student_selections set grade = ? where student_id = ? and section_id = ?")){
+
+            if(sectionGradeType)
+                stmt.setInt(1,((HundredMarkGrade)grade).mark);
+            else stmt.setInt(1,(((PassOrFailGrade)grade) == PassOrFailGrade.PASS)?60:0);
+            stmt.setInt(2,studentId);
+            stmt.setInt(3,sectionId);
+
+            int ret = stmt.executeUpdate();
+            if( ret <= 0 )throw new IllegalStateException();
+
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
 
     }
 
