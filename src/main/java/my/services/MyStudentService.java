@@ -44,6 +44,19 @@ public class MyStudentService implements StudentService {
     @Override
     public void dropCourse(int studentId, int sectionId) throws IllegalStateException {
 
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
+             PreparedStatement stmt = connection.prepareStatement(
+                     "delete from student_selections where student_id = ? and section_id = ?")) {
+            stmt.setInt(1,studentId);
+            stmt.setInt(2,sectionId);
+
+            int ret =stmt.executeUpdate();
+            if( ret <= 0 ) throw new IllegalStateException();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override
