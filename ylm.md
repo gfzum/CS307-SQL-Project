@@ -8,3 +8,6 @@ json文件中，major和department是有ID的，但是传入函数中并没有�
 所以将其由integer[]改成单个。
 
 
+优化方法：
+或许可以用传入connection的方式做一些优化？
+
