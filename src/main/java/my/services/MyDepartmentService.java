@@ -57,7 +57,7 @@ public class MyDepartmentService implements DepartmentService{
             ResultSet rs = stm.executeQuery();
 
             List<Department> list = new ArrayList<>();
-            if (rs.next()){
+            while (rs.next()){
                 Department temp = new Department();
                 temp.id = rs.getInt(1);
                 temp.name = rs.getString(2);

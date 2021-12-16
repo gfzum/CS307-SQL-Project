@@ -14,7 +14,7 @@ import java.util.List;
 public class MySemesterService implements SemesterService {
     @Override
     public int addSemester(String name, Date begin, Date end) {
-        //todo id需要自增
+        //id需要自增
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement st = connection.prepareStatement(
                      "insert into semester (sem_name, sem_begin, sem_end) values (?,?,?);")) {
@@ -56,7 +56,7 @@ public class MySemesterService implements SemesterService {
             ResultSet rs = stm.executeQuery();
 
             List<Semester> list = new ArrayList<>();
-            if (rs.next()){
+            while (rs.next()){
                 Semester temp = new Semester();
                 temp.id = rs.getInt(1);
                 temp.name = rs.getString(2);

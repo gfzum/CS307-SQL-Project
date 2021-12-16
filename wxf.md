@@ -1,7 +1,15 @@
 department
 
-addDepartment中，发现接口中定义的方法没有传入id参数，而json文件中department数据中包含id属性，且其从1开始递增，故在建表时将dept_id设置为自增。
-同样的，major_id也是自增的。
+addDepartment中，发现接口中定义的方法没有传入id参数，而json文件中department数据中包含id属性，
+且其从1开始递增，故在建表时将dept_id设置为自增。
+同样的，major_id,semester_id也是自增的。
 另外，考虑在查找返回时加入异常处理。
 
-dept_name unique 约束
+dept_name 须添加unique 约束
+
+MyUserService 中的 removeUser 与 getUser方法，UserId应该同时面向student及instructor
+但由于建表时两者分开，故分别使用两条语句在两个表中进行对应id的检索。
+必然的，其中一条会因为找不到id而报错，此时entityNotFound exception将会对其进行处理。（可以吗？）
+是否会因为第一条语句throw exception后导致第二条语句不执行？
+
+对于User中的fullName要求，利用正则表达式构建fullName方法，写在MyUserService类中，添加public static关键字供全局调用

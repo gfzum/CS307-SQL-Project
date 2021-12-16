@@ -58,7 +58,7 @@ public class MyMajorService implements MajorService{
             ResultSet rs = st.executeQuery();
 
             List<Major> list = new ArrayList<>();
-            if (rs.next()){
+            while (rs.next()){
                 Major temp = new Major();
                 temp.id = rs.getInt(1);
                 temp.name = rs.getString(2);

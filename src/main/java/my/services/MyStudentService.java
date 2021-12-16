@@ -221,12 +221,6 @@ public class MyStudentService implements StudentService {
 
     }
 
-    public String getFullName(String firstName, String lastName){
-        if (firstName.matches("[a-zA-Z ]+") && lastName.matches("[a-zA-Z ]+"))
-            return firstName + " " + lastName;
-        return firstName + lastName;
-    }
-
     @Override
     public CourseTable getCourseTable(int studentId, Date date) {
 
@@ -270,7 +264,7 @@ public class MyStudentService implements StudentService {
 
                 Instructor ins = new Instructor();
                 ins.id = rsst.getInt(3);
-                ins.fullName = getFullName( rsst.getString(4), rsst.getString(5) );
+                ins.fullName = MyUserService.getFullName( rsst.getString(4), rsst.getString(5) );
                 entry.instructor = ins;
 
                 entry.classBegin = (short)rsst.getInt(6);
