@@ -7,12 +7,14 @@ import cn.edu.sustech.cs307.dto.grade.HundredMarkGrade;
 import cn.edu.sustech.cs307.dto.grade.PassOrFailGrade;
 import cn.edu.sustech.cs307.exception.EntityNotFoundException;
 import cn.edu.sustech.cs307.exception.IntegrityViolationException;
+import cn.edu.sustech.cs307.service.CourseService;
 import cn.edu.sustech.cs307.service.StudentService;
 
 import javax.annotation.Nullable;
 import java.sql.*;
 import java.time.DayOfWeek;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -40,8 +42,35 @@ public class MyStudentService implements StudentService {
         return null;
     }
 
+    private boolean isEnrolledSection (int sectionId) {
+
+    }
+
     @Override
     public EnrollResult enrollCourse(int studentId, int sectionId) {
+
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection()){
+
+            MyCourseService mcs = new MyCourseService();
+            try {
+                mcs.getCourseBySection(sectionId);
+            } catch (EntityNotFoundException e){
+                return EnrollResult.COURSE_NOT_FOUND;
+            }
+            if(isEnrolledSection(sectionId)){
+                return EnrollResult.ALREADY_ENROLLED;
+            }
+            if()
+
+
+
+
+                COURSE_NOT_FOUND > ALREADY_ENROLLED > ALREADY_PASSED > PREREQUISITES_NOT_FULFILLED > COURSE_CONFLICT_FOUND > COURSE_IS_FULL > UNKNOWN_ERROR
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         return null;
     }
 
@@ -192,9 +221,73 @@ public class MyStudentService implements StudentService {
 
     }
 
+    public String getFullName(String firstName, String lastName){
+        if (firstName.matches("[a-zA-Z ]+") && lastName.matches("[a-zA-Z ]+"))
+            return firstName + " " + lastName;
+        return firstName + lastName;
+    }
+
     @Override
     public CourseTable getCourseTable(int studentId, Date date) {
-        return null;
+
+        try (Connection connection=SQLDataSource.getInstance().getSQLConnection();
+            PreparedStatement stmt=connection.prepareStatement(
+                    "select cs.section_name, c.course_name,\n" +
+                            "        i.instructor_id, i.first_name, i.last_name,\n" +
+                            "        cls.class_begin, cls.class_end, cls.location, cls.days\n" +
+                            "from semester sem\n" +
+                            "inner join course_section cs\n" +
+                            "    on cs.semester_id=sem.semester_id\n" +
+                            "inner join classes cls\n" +
+                            "    on cs.section_id = cls.section_id\n" +
+                            "        and cls.week_list=(floor((? - sem.sem_begin) / 7.0)::integer + 1)\n" +
+                            "inner join course c\n" +
+                            "    on c.course_id = cs.course_id\n" +
+                            "inner join instructor i\n" +
+                            "    on i.instructor_id=cls.instructor_id\n" +
+                            "inner join\n" +
+                            "(select section_id from student_selections where student_id = ?) as sec\n" +
+                            "    on sec.section_id = cs.section_id\n" +
+                            "where ? between sem.sem_begin and sem.sem_end")){
+
+            stmt.setDate(1,date);
+            stmt.setInt(2,studentId);
+            stmt.setDate(3,date);
+
+            ResultSet rsst = stmt.executeQuery();
+
+            CourseTable ret = new CourseTable();
+            ret.table = new HashMap<>();
+            for (DayOfWeek day: DayOfWeek.values())
+                ret.table.put(day, new HashSet<>());
+
+            while (rsst.next()){
+
+                CourseTable.CourseTableEntry entry = new CourseTable.CourseTableEntry();
+
+                entry.courseFullName =
+                        String.format("%s[%s]",rsst.getString(2),rsst.getString(1));
+
+                Instructor ins = new Instructor();
+                ins.id = rsst.getInt(3);
+                ins.fullName = getFullName( rsst.getString(4), rsst.getString(5) );
+                entry.instructor = ins;
+
+                entry.classBegin = (short)rsst.getInt(6);
+                entry.classEnd = (short)rsst.getInt(7);
+                entry.location = rsst.getString(8);
+
+                DayOfWeek day = DayOfWeek.of( rsst.getInt(9) );
+                ret.table.get(day).add(entry);
+            }
+
+            return ret;
+
+        }catch (SQLException e){
+            e.printStackTrace();
+            throw new IntegrityViolationException();
+        }
+
     }
 
     @Override
