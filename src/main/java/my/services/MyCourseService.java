@@ -35,23 +35,50 @@ public class MyCourseService implements CourseService {
 
     @Override
     public int addCourseSection(String courseId, int semesterId, String sectionName, int totalCapacity) {
-        String sql = "insert into coursesection" + "(courseId, semesterId, sectionName, totalCapacity)" + "values(?, ?, ?, ?);";
+        String sql = "insert into course_section" + "(course_id, semester_id, section_name, total_capacity)" + "values(?, ?, ?, ?);";
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(sql,PreparedStatement.RETURN_GENERATED_KEYS)) {
+            int back;
             stmt.setString(1, courseId);
             stmt.setInt(2, semesterId);
             stmt.setString(3, sectionName);
             stmt.setInt(4, totalCapacity);
             stmt.executeUpdate();
             ResultSet resultSet = stmt.getGeneratedKeys();
+            if(resultSet.next()) {
+                back = resultSet.getInt(3);
+                connection.commit();
+                connection.close();
+                return back;
+            }
+            else {
+                connection.commit();
+                connection.close();
+                //throw exception
+            }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return
+        return -1;//avoid error
     }
 
     @Override
     public int addCourseSectionClass(int sectionId, int instructorId, DayOfWeek dayOfWeek, Set<Short> weekList, short classStart, short classEnd, String location) {
+        String sql="insert into classes" + "(sectionid, instructorid, dayofweek, week, classbegin, classend, location, classid) " + "values (?,?,?,?,?,?,?,currval('coursesectionclass_classid_seq'));";
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
+             PreparedStatement stmt = connection.prepareStatement("insert into classes (section_id, instructor_id, day_of_week, class_begin, class_end, location) values (?,?,?,?,?)")) {
+            stmt.setInt(1, sectionId);
+            stmt.setInt(2, instructorId);
+            stmt.setInt(3,dayOfWeek.getValue());
+            stmt.setShort(5,classStart);
+            stmt.setShort(6,classEnd);
+            stmt.setString(7,location);
+            //weeklist
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return 0;
     }
 
