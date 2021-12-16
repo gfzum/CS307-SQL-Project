@@ -61,7 +61,7 @@ public class MyStudentService implements StudentService {
         }
     }
 
-    private boolean getSectionGradeType(int sectionId){
+    private int getSectionGradeType(int sectionId){
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
             PreparedStatement stmt = connection.prepareStatement(
                     "select grading from course " +
@@ -71,7 +71,8 @@ public class MyStudentService implements StudentService {
 
             ResultSet rsst = stmt.executeQuery();
             if(rsst.next()){
-                return rsst.getInt(1) == 1;
+                String ret = rsst.getString(1);
+                return (ret == "PASS_OR_FAIL")?1:0;
             }else
                 throw new IntegrityViolationException();
 
@@ -83,29 +84,57 @@ public class MyStudentService implements StudentService {
     @Override
     public void addEnrolledCourseWithGrade(int studentId, int sectionId, @Nullable Grade grade) {
 
-
-    }
-
-    @Override
-    public void setEnrolledCourseGrade(int studentId, int sectionId, Grade grade) {
-
-        Boolean sectionGradeType;
+        int sectionGradeType;
         sectionGradeType = getSectionGradeType(sectionId);
-        if(sectionGradeType != grade instanceof PassOrFailGrade)
-            throw new IntegrityViolationException();
-
+        if(grade != null) {
+            if (grade instanceof PassOrFailGrade)
+                if (sectionGradeType != 0) throw new IntegrityViolationException();
+            if (grade instanceof HundredMarkGrade)
+                if (sectionGradeType != 1) throw new IntegrityViolationException();
+        }
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
-                     "update student_selections set grade = ? where student_id = ? and section_id = ?")){
+                     "insert into student_selections (grade, student_id, section_id) values (?,?,?)")){
 
-            if(sectionGradeType)
+            if(grade == null){
+                stmt.setObject(1,null);
+            }else if(sectionGradeType == 1)
                 stmt.setInt(1,((HundredMarkGrade)grade).mark);
             else stmt.setInt(1,(((PassOrFailGrade)grade) == PassOrFailGrade.PASS)?60:0);
             stmt.setInt(2,studentId);
             stmt.setInt(3,sectionId);
 
             int ret = stmt.executeUpdate();
-            if( ret <= 0 )throw new IllegalStateException();
+            if( ret <= 0 )throw new IntegrityViolationException();
+
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+
+    }
+
+    @Override
+    public void setEnrolledCourseGrade(int studentId, int sectionId, Grade grade) {
+
+        int sectionGradeType;
+        sectionGradeType = getSectionGradeType(sectionId);
+        if(grade instanceof PassOrFailGrade)
+            if(sectionGradeType != 0) throw new IntegrityViolationException();
+        if(grade instanceof HundredMarkGrade)
+            if(sectionGradeType != 1) throw new IntegrityViolationException();
+
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
+             PreparedStatement stmt = connection.prepareStatement(
+                     "update student_selections set grade = ? where student_id = ? and section_id = ?")){
+
+            if(sectionGradeType == 1)
+                stmt.setInt(1,((HundredMarkGrade)grade).mark);
+            else stmt.setInt(1,(((PassOrFailGrade)grade) == PassOrFailGrade.PASS)?60:0);
+            stmt.setInt(2,studentId);
+            stmt.setInt(3,sectionId);
+
+            int ret = stmt.executeUpdate();
+            if( ret <= 0 )throw new IntegrityViolationException();
 
         } catch (SQLException e){
             e.printStackTrace();
