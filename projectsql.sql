@@ -11,7 +11,7 @@ create table course
 
 create table semester
 (
-	semester_id int not null
+	semester_id serial not null
         constraint semester_pk
             primary key,
 	sem_name varchar(50) not null,

@@ -12,6 +12,7 @@ import cn.edu.sustech.cs307.service.StudentService;
 import javax.annotation.Nullable;
 import java.sql.*;
 import java.time.DayOfWeek;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -144,7 +145,51 @@ public class MyStudentService implements StudentService {
 
     @Override
     public Map<Course, Grade> getEnrolledCoursesAndGrades(int studentId, @Nullable Integer semesterId) {
-        return null;
+
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection()){
+            Map<Course, Grade> ret = new HashMap<>();
+
+            String SQLStatement = "select c.course_id, c.course_name, c.class_hour, c.credit, c.grading, ss.grade\n" +
+                    "from student_selections ss\n" +
+                    "join course_section cs on cs.section_id = ss.section_id\n" +
+                    "join course c on cs.course_id = c.course_id\n" +
+                    "where ss.student_id = ?";
+            if(semesterId != null) SQLStatement += " and cs.semester_id = ?";
+
+            PreparedStatement stmt = connection.prepareStatement(SQLStatement);
+
+            stmt.setInt(1,studentId);
+            if(semesterId != null) stmt.setInt(2,semesterId);
+
+            ResultSet rsst = stmt.executeQuery();
+
+            while(rsst.next()) {
+                Course course = new Course();
+                course.id = rsst.getString(1);
+                course.name = rsst.getString(2);
+                course.classHour = rsst.getInt(3);
+                course.credit = rsst.getInt(4);
+                String grading = rsst.getString(5);
+                course.grading = (grading == "PASS_OR_FAIL") ? Course.CourseGrading.PASS_OR_FAIL
+                                                             : Course.CourseGrading.HUNDRED_MARK_SCORE;
+
+                Grade grade;
+                if (rsst.getString(6) == null) grade = null;
+                else if (grading == "PASS_OR_FAIL")
+                    grade = (rsst.getShort(6) == 60) ? PassOrFailGrade.PASS
+                                             : PassOrFailGrade.FAIL;
+                else grade = new HundredMarkGrade(rsst.getShort(6));
+                ret.put(course, grade);
+            }
+
+            if(ret.isEmpty()) throw new EntityNotFoundException();
+
+            return ret;
+
+        } catch (SQLException e){
+            throw new IntegrityViolationException();
+        }
+
     }
 
     @Override
