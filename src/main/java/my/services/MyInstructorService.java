@@ -16,13 +16,13 @@ public class MyInstructorService implements InstructorService{
     @Override
     public void addInstructor(int userId, String firstName, String lastName) {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt = connection.prepareStatement(
+             PreparedStatement st = connection.prepareStatement(
                      "insert into instructor(instructor_id, first_name, last_name) " +
                      "values (?,?,?)")) {
-            stmt.setInt(1,userId);
-            stmt.setString(2,firstName);
-            stmt.setString(3,lastName);
-            stmt.executeUpdate();
+            st.setInt(1,userId);
+            st.setString(2,firstName);
+            st.setString(3,lastName);
+            st.executeUpdate();
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -43,6 +43,8 @@ public class MyInstructorService implements InstructorService{
             ps1.setInt(1, instructorId);
             ResultSet rs1 = ps1.executeQuery();
             int sec_id = rs1.getInt(8);
+            ps1.close();
+            rs1.close();
 
             //查找该班级在该学期是否有对应课程
             PreparedStatement ps2 = con.prepareStatement(
@@ -62,6 +64,9 @@ public class MyInstructorService implements InstructorService{
 
                 list.add(selected);
             }
+            ps2.close();
+            rs2.close();
+
             return list;
 
         } catch (SQLException e) {

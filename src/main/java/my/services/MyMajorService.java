@@ -3,6 +3,8 @@ package my.services;
 import cn.edu.sustech.cs307.database.SQLDataSource;
 import cn.edu.sustech.cs307.dto.Department;
 import cn.edu.sustech.cs307.dto.Major;
+import cn.edu.sustech.cs307.exception.EntityNotFoundException;
+import cn.edu.sustech.cs307.exception.IntegrityViolationException;
 import cn.edu.sustech.cs307.service.MajorService;
 
 import java.sql.Connection;
@@ -15,21 +17,35 @@ import java.util.List;
 public class MyMajorService implements MajorService{
     @Override
     public int addMajor(String name, int departmentId) {
-        //todo
-        return 0;
+
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
+             PreparedStatement st = connection.prepareStatement(
+                     "insert into major(major_name, department_id) values (?,?);")) {
+            st.setString(1, name);
+            st.setInt(2, departmentId);
+            st.executeUpdate();
+
+            ResultSet rs = st.getGeneratedKeys();
+            return rs.getInt(1);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new IntegrityViolationException();
+        }
     }
 
     @Override
     public void removeMajor(int majorId) {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection()){
             String sql = "delete from major where major_id = ?";
-            PreparedStatement stm = connection.prepareStatement(sql);
-            stm.setInt(1,majorId);
-            stm.executeUpdate();
-            stm.close();
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1,majorId);
+            st.executeUpdate();
+            st.close();
 
         } catch (SQLException e){
             e.printStackTrace();
+            throw new EntityNotFoundException();
         }
     }
 
@@ -37,8 +53,8 @@ public class MyMajorService implements MajorService{
     public List<Major> getAllMajors() {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection()){
             String sql = "select * from major;";
-            PreparedStatement stm = connection.prepareStatement(sql);
-            ResultSet rs = stm.executeQuery();
+            PreparedStatement st = connection.prepareStatement(sql);
+            ResultSet rs = st.executeQuery();
 
             List<Major> list = new ArrayList<>();
             if (rs.next()){
@@ -51,7 +67,7 @@ public class MyMajorService implements MajorService{
 
                 list.add(temp);
             }
-            stm.close();
+            st.close();
             rs.close();
             return list;
 
@@ -65,8 +81,9 @@ public class MyMajorService implements MajorService{
     public Major getMajor(int majorId) {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection()){
             String sql = "select * from major where major_id = ?";
-            PreparedStatement stm = connection.prepareStatement(sql);
-            ResultSet rs = stm.executeQuery();
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, majorId);
+            ResultSet rs = st.executeQuery();
 
             Major temp = new Major();
             if (rs.next()){
@@ -76,14 +93,14 @@ public class MyMajorService implements MajorService{
                 MyDepartmentService dp = new MyDepartmentService();
                 temp.department = dp.getDepartment(rs.getInt(3));
             }
-            stm.close();
+            st.close();
             rs.close();
             return temp;
 
         } catch (SQLException e){
-            e.printStackTrace();//todo exception
+            e.printStackTrace();
+            throw new EntityNotFoundException();
         }
-        return null;
     }
 
     @Override

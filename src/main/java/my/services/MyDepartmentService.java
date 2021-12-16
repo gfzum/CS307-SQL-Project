@@ -80,6 +80,7 @@ public class MyDepartmentService implements DepartmentService{
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection()){
             String sql = "select * from department where dept_id = ?";
             PreparedStatement stm = connection.prepareStatement(sql);
+            stm.setInt(1,departmentId);
             ResultSet rs = stm.executeQuery();
 
             Department temp = new Department();
