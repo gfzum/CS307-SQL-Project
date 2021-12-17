@@ -20,14 +20,16 @@ public class MyMajorService implements MajorService{
 
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement st = connection.prepareStatement(
-                     "insert into major(major_name, department_id) values (?,?);")) {
+                     "insert into major(major_name, department_id) values (?,?);", PreparedStatement.RETURN_GENERATED_KEYS)) {
             st.setString(1, name);
             st.setInt(2, departmentId);
             st.executeUpdate();
-            //st.close();
 
             ResultSet rs = st.getGeneratedKeys();
-            return rs.getInt(1);
+
+            if(rs.next())
+                return rs.getInt(1);
+            else throw new EntityNotFoundException();
 
         } catch (SQLException e) {
             e.printStackTrace();

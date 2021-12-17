@@ -6,10 +6,7 @@ import cn.edu.sustech.cs307.exception.EntityNotFoundException;
 import cn.edu.sustech.cs307.exception.IntegrityViolationException;
 import cn.edu.sustech.cs307.service.DepartmentService;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,14 +16,14 @@ public class MyDepartmentService implements DepartmentService{
 
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement st = connection.prepareStatement(
-                     "insert into department(dept_name) values (?)")) {
+                     "insert into department(dept_name) values (?)", PreparedStatement.RETURN_GENERATED_KEYS)) {
             st.setString(1, name);
             st.executeUpdate();
 
             ResultSet rs = st.getGeneratedKeys();
 
             if(rs.next())
-                return rs.getInt(2);
+                return rs.getInt(1);
             //EntityNotFound?
             else throw new EntityNotFoundException();
 

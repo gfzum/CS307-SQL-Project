@@ -17,15 +17,17 @@ public class MySemesterService implements SemesterService {
         //id需要自增
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement st = connection.prepareStatement(
-                     "insert into semester (sem_name, sem_begin, sem_end) values (?,?,?);")) {
+                     "insert into semester (sem_name, sem_begin, sem_end) values (?,?,?);", PreparedStatement.RETURN_GENERATED_KEYS)) {
             st.setString(1, name);
             st.setDate(2, begin);
             st.setDate(3, begin);
             st.executeUpdate();
-            //st.close();
 
             ResultSet rs = st.getGeneratedKeys();
-            return rs.getInt(1);
+
+            if(rs.next())
+                return rs.getInt(1);
+            else throw new EntityNotFoundException();
 
         } catch (SQLException e) {
             e.printStackTrace();
