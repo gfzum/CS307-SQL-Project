@@ -6,8 +6,12 @@ json文件中，major和department是有ID的，但是传入函数中并没有�
 
 之前理解day_of_week是一个集合，因为一周可能有多个时间出现一个class，但是这个数据中day_of_week就只有一个可能。
 所以将其由integer[]改成单个。
+然后发现week_list同理 所以也改成单个吧。
+!!!然后发现只有把这个int数组改为单个才能符合范式的要求，所以就按照int来吧。
 
 
 优化方法：
 或许可以用传入connection的方式做一些优化？
+
+
 

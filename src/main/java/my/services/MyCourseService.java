@@ -48,9 +48,15 @@ public class MyCourseService implements CourseService {
                 stmt.executeUpdate();
                 ResultSet resultSet = stmt.getGeneratedKeys();
                 if (resultSet.next()) {
-                    back = resultSet.getInt(3);
+                    back = resultSet.getInt(1);
                     connection.commit();
                     connection.close();
+
+
+                    // TODO ：这里为啥要close connection???? commit 有啥用
+
+
+
                     return back;
                 } else {
                     connection.commit();
@@ -83,13 +89,13 @@ public class MyCourseService implements CourseService {
             stmt.setShort(6, classEnd);
             stmt.setString(7, location);
 
-// TODO : wxf's flag
-//            int[] t = new int[weekList.size()];
-//            int cnt = 0;
-//            for (Short i : weekList) {
-//                t[cnt++] = i;
-//            }
-//            stmt.setArray(4,connection.createArrayOf("integer",  t));
+ TODO :
+            int[] t = new int[weekList.size()];
+            int cnt = 0;
+            for (Short i : weekList) {
+                t[cnt++] = i;
+            }
+            stmt.setArray(4, connection.createArrayOf("integer",  t));
             //weeklist
             stmt.executeUpdate();
         } catch (SQLException e) {

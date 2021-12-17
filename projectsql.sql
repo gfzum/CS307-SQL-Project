@@ -111,7 +111,7 @@ create table classes
 			references instructor
 	            on delete cascade,
 	day_of_week integer,
-	week_list integer[],
+	week_list integer,
 	class_begin integer,
 	class_end integer,
 	location varchar(50),
