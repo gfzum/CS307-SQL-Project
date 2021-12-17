@@ -103,22 +103,22 @@ alter table student
 
 create table classes
 (
-	class_id serial not null
-		constraint classes_pk
-			primary key,
+	class_id serial not null,
 	instructor_id integer
 		constraint instructor
 			references instructor
 	            on delete cascade,
 	day_of_week integer,
-	week_list integer,
+	week_num integer,
 	class_begin integer,
 	class_end integer,
 	location varchar(50),
 	section_id int
 		constraint classes_section_id_fk
 			references course_section
-                on delete cascade
+                on delete cascade,
+    constraint classes_pk
+        primary key (class_id, week_num)
 );
 
 create table course_majors

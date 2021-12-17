@@ -80,8 +80,10 @@ public class MyCourseService implements CourseService {
 
     @Override
     public int addCourseSectionClass(int sectionId, int instructorId, DayOfWeek dayOfWeek, Set<Short> weekList, short classStart, short classEnd, String location) {
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt = connection.prepareStatement("insert into classes (section_id, instructor_id, day_of_week, week_list, class_begin, class_end, location) values (?,?,?,?,?,?,?)")) {
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection()){
+
+            PreparedStatement stmt = connection.prepareStatement(
+                    "insert into classes (section_id, instructor_id, day_of_week, week_num, class_begin, class_end, location) values (?,?,?,?,?,?,?)");
             stmt.setInt(1, sectionId);
             stmt.setInt(2, instructorId);
             stmt.setInt(3, dayOfWeek.getValue());
@@ -89,19 +91,37 @@ public class MyCourseService implements CourseService {
             stmt.setShort(6, classEnd);
             stmt.setString(7, location);
 
- TODO :
-            int[] t = new int[weekList.size()];
-            int cnt = 0;
-            for (Short i : weekList) {
-                t[cnt++] = i;
-            }
-            stmt.setArray(4, connection.createArrayOf("integer",  t));
-            //weeklist
+            Iterator it = weekList.iterator();
+            stmt.setShort(4, (short) it.next());
+
             stmt.executeUpdate();
+            ResultSet rsst = stmt.getGeneratedKeys();
+            int classId;
+            if( rsst.next() ){
+                classId = rsst.getInt(1);
+            }else throw new EntityNotFoundException();
+
+            stmt = connection.prepareStatement(
+                    "insert into classes (class_id, section_id, instructor_id, day_of_week, week_num, class_begin, class_end, location) values (?,?,?,?,?,?,?,?)");
+            stmt.setInt(1, classId);
+            stmt.setInt(2, sectionId);
+            stmt.setInt(3, instructorId);
+            stmt.setInt(4, dayOfWeek.getValue());
+            stmt.setShort(6, classStart);
+            stmt.setShort(7, classEnd);
+            stmt.setString(8, location);
+
+            for(; it.hasNext(); ){
+                stmt.setInt(5, (short) it.next());
+                stmt.executeUpdate();
+            }
+
+            return classId;
+
         } catch (SQLException e) {
             e.printStackTrace();
+            throw new IntegrityViolationException();
         }
-        return 0;
     }
 
     @Override
