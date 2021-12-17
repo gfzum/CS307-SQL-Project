@@ -167,6 +167,7 @@ public final class ProjectJudge {
                         studentService.dropCourse(student, section);
                     } catch (IllegalStateException e) {
                         result.passCount.getAndIncrement();
+                        System.out.println(student + " " + section);
                     }
                 }
             });
