@@ -75,7 +75,7 @@ public class MySemesterService implements SemesterService {
             e.printStackTrace();
         }
 
-        return null;
+        return List.of();
     }
 
     @Override

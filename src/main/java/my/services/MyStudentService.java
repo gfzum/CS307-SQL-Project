@@ -337,19 +337,19 @@ public class MyStudentService implements StudentService {
                 course.classHour = rsst.getInt(3);
                 course.credit = rsst.getInt(4);
                 String grading = rsst.getString(5);
-                course.grading = (grading == "PASS_OR_FAIL") ? Course.CourseGrading.PASS_OR_FAIL
+                course.grading = (grading.equals("PASS_OR_FAIL")) ? Course.CourseGrading.PASS_OR_FAIL
                         : Course.CourseGrading.HUNDRED_MARK_SCORE;
 
                 Grade grade;
                 if (rsst.getString(6) == null) grade = null;
-                else if (grading == "PASS_OR_FAIL")
+                else if (grading.equals("PASS_OR_FAIL"))
                     grade = (rsst.getShort(6) == 60) ? PassOrFailGrade.PASS
                             : PassOrFailGrade.FAIL;
                 else grade = new HundredMarkGrade(rsst.getShort(6));
                 ret.put(course, grade);
             }
 
-            if (ret.isEmpty()) throw new EntityNotFoundException();
+            if (ret.isEmpty()) return Map.of(); //题目要求
 
             return ret;
 

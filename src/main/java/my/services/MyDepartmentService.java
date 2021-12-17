@@ -50,12 +50,14 @@ public class MyDepartmentService implements DepartmentService{
 
     @Override
     public List<Department> getAllDepartments() {
+
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection()){
+            List<Department> list = new ArrayList<>();
+
             String sql = "select * from department";
             PreparedStatement stm = connection.prepareStatement(sql);
             ResultSet rs = stm.executeQuery();
 
-            List<Department> list = new ArrayList<>();
             while (rs.next()){
                 Department temp = new Department();
                 temp.id = rs.getInt(1);
@@ -71,7 +73,7 @@ public class MyDepartmentService implements DepartmentService{
             e.printStackTrace();
         }
 
-        return null;
+       return List.of();
     }
 
     @Override

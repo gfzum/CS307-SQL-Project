@@ -77,7 +77,7 @@ public class MyMajorService implements MajorService{
         } catch (SQLException e){
             e.printStackTrace();
         }
-        return null;
+        return List.of();
     }
 
     @Override
