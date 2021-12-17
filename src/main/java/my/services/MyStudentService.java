@@ -94,10 +94,6 @@ public class MyStudentService implements StudentService {
 
     private boolean courseConflictFound (int studentId, int sectionId){
 
-        if(studentId == 11715274){
-            System.out.println("here");
-        }
-
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
                      "select conf.course_id, conf.section_id from\n" +
