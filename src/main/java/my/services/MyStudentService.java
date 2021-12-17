@@ -86,9 +86,64 @@ public class MyStudentService implements StudentService {
         }
     }
 
+
     private boolean courseConflictFound (int studentId, int sectionId){
-        return false;
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
+             PreparedStatement stmt = connection.prepareStatement(
+                     "select conf.course_id, conf.section_id from\n" +
+                             "\n" +
+                             "(select * from course_section\n" +
+                             "join classes c on course_section.section_id = c.section_id\n" +
+                             "where c.section_id = ?) as now\n" +
+                             "\n" +
+                             "\n" +
+                             "join\n" +
+                             "        (select * from classes cls\n" +
+                             "        join course_section cs on cls.section_id = cs.section_id) as conf\n" +
+                             "\n" +
+                             "on ((conf.class_begin<=now.class_begin and conf.class_end>=now.class_end)\n" +
+                             "    or(conf.class_begin>=now.class_begin and conf.class_end<=now.class_end)\n" +
+                             "    or(conf.class_begin>=now.class_begin and conf.class_begin<=now.class_end)\n" +
+                             "    or(conf.class_end>=now.class_begin and conf.class_end<=now.class_end))\n" +
+                             "and conf.day_of_week = now.day_of_week\n" +
+                             "and conf.week_list = now.week_list\n" +
+                             "and conf.semester_id = now.semester_id\n" +
+                             "\n" +
+                             "join\n" +
+                             "(select cs.section_id from student_selections ss\n" +
+                             "join course_section cs on ss.section_id = cs.section_id\n" +
+                             "where ss.student_id = ? and grade = null ) as stu\n" +
+                             "on stu.section_id = conf.section_id\n" +
+                             "\n" +
+                             "union\n" +
+                             "\n" +
+                             "select cs.course_id, section_id from (\n" +
+                             "                  select semester_id, c.course_id from student_selections ss\n" +
+                             "                           join course_section cs on ss.section_id = cs.section_id\n" +
+                             "                           join course c on c.course_id = cs.course_id\n" +
+                             "                  where student_id = ?\n" +
+                             "              ) as now\n" +
+                             "join course cou on cou.course_id = now.course_id\n" +
+                             "join course_section cs on cou.course_id = cs.course_id\n" +
+                             "where cs.semester_id = now.semester_id and cs.section_id = ?")) {
+            stmt.setInt(1, sectionId);
+            stmt.setInt(2, studentId);
+            stmt.setInt(3, studentId);
+            stmt.setInt(4, sectionId);
+
+            ResultSet rsst = stmt.executeQuery();
+
+            if(rsst.next()){
+                return true;
+            }else
+                return false;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new IntegrityViolationException();
+        }
     }
+
 
     private boolean checkHaveLeftCapacity (int sectionId) {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
