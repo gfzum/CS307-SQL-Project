@@ -201,7 +201,7 @@ public class MyCourseService implements CourseService {
                 courseSections.add(courseSection);
             }
             if (courseSections.isEmpty())
-                throw new EntityNotFoundException();
+                return List.of();
             else
                 return courseSections;
         } catch (SQLException e) {
@@ -288,7 +288,7 @@ public class MyCourseService implements CourseService {
             }
 
             if (result.isEmpty()) {
-                throw new EntityNotFoundException();
+                return List.of();
             }
             else
                 return result;
@@ -375,7 +375,7 @@ public class MyCourseService implements CourseService {
             connection.close();
 
             if (result.isEmpty())
-                throw new EntityNotFoundException();
+                return List.of();
             else
                 return result;
         } catch (SQLException e) {
