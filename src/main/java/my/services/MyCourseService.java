@@ -162,9 +162,9 @@ public class MyCourseService implements CourseService {
                 course.grading = Grade.equals("PASS_OR_FAIL") ? Course.CourseGrading.PASS_OR_FAIL : Course.CourseGrading.HUNDRED_MARK_SCORE;
                 courses.add(course);
             }
-            if (courses.isEmpty())
-                throw new EntityNotFoundException();
-            else
+//            if (courses.isEmpty())
+//                throw new EntityNotFoundException();
+//            else
                 return courses;
         } catch (SQLException e) {
             e.printStackTrace();

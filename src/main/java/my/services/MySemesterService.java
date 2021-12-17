@@ -22,7 +22,7 @@ public class MySemesterService implements SemesterService {
             st.setDate(2, begin);
             st.setDate(3, begin);
             st.executeUpdate();
-            st.close();
+            //st.close();
 
             ResultSet rs = st.getGeneratedKeys();
             return rs.getInt(1);

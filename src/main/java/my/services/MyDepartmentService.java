@@ -22,11 +22,14 @@ public class MyDepartmentService implements DepartmentService{
                      "insert into department(dept_name) values (?)")) {
             st.setString(1, name);
             st.executeUpdate();
-            st.close();
+            //st.close();
 
             ResultSet rs = st.getGeneratedKeys();
-            return rs.getInt(1);
+
+            if(rs.next())
+                return rs.getInt(1);
             //EntityNotFound?
+            else throw new EntityNotFoundException();
 
         } catch (SQLException e) {
             e.printStackTrace();
