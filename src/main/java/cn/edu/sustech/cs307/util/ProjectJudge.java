@@ -110,6 +110,7 @@ public final class ProjectJudge {
             return studentService.enrollCourse(params.get(0), importer.mapSectionId(params.get(1)));
         } catch (Throwable t) {
             t.printStackTrace();
+            System.err.println(params.get(0) + " " + params.get(1));
             return StudentService.EnrollResult.UNKNOWN_ERROR;
         }
     }
@@ -152,6 +153,7 @@ public final class ProjectJudge {
             return studentService.getCourseTable(params.get(0), Date.valueOf(LocalDate.ofEpochDay(params.get(1))));
         } catch (Throwable t) {
             t.printStackTrace();
+            System.err.println(params.get(0) + " " + params.get(1));
             return errorTable;
         }
     }
