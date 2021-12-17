@@ -10,6 +10,7 @@ import cn.edu.sustech.cs307.service.CourseService;
 import javax.annotation.Nullable;
 import javax.sql.rowset.serial.SerialArray;
 import java.sql.*;
+import java.sql.Date;
 import java.time.DayOfWeek;
 import java.util.*;
 
@@ -82,13 +83,13 @@ public class MyCourseService implements CourseService {
             stmt.setShort(6, classEnd);
             stmt.setString(7, location);
 
-// TODO : wxf's flag xxx
+// TODO : wxf's flag
 //            int[] t = new int[weekList.size()];
 //            int cnt = 0;
 //            for (Short i : weekList) {
 //                t[cnt++] = i;
 //            }
-//            stmt.setArray(4,connection.createArrayOf("integer",  t)));
+//            stmt.setArray(4,connection.createArrayOf("integer",  t));
             //weeklist
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -234,17 +235,71 @@ public class MyCourseService implements CourseService {
 
     @Override
     public List<CourseSectionClass> getCourseSectionClasses(int sectionId) {
-        return null;
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection()) {
+            List<CourseSectionClass> result = new ArrayList<>();
+
+            PreparedStatement prepareStatement = connection.prepareStatement("select classid, i.student_id as instructor_id, i.first_name||' '||i.last_name as full_name,day_of_week, class_begin, class_end, location, week_list from classes inner join instructor i on i.userid = classes.instructor_id where section_id=? group by class_id, instructor_id, full_name, i.instructor_id, day_of_week, class_begin, class_end, location");
+            prepareStatement.setInt(1, sectionId);
+            ResultSet resultSet = prepareStatement.executeQuery();
+
+            while (resultSet.next()) {
+                CourseSectionClass courseSectionClass = new CourseSectionClass();
+                Instructor instructor = new Instructor();
+
+                courseSectionClass.id = resultSet.getInt(1);
+
+                instructor.id = resultSet.getInt(2);
+                instructor.fullName = resultSet.getString(3);
+
+                courseSectionClass.instructor = instructor;
+
+                courseSectionClass.dayOfWeek = DayOfWeek.of(resultSet.getInt(4));
+
+                courseSectionClass.classBegin = (short) resultSet.getInt(5);
+                courseSectionClass.classEnd = (short) resultSet.getInt(6);
+
+                courseSectionClass.location = resultSet.getString(7);
+
+                Array weekList = resultSet.getArray(8);
+
+                Set<Short> week_list = new HashSet<>();
+
+                for (Object o : (Object[]) weekList.getArray()) {
+                    if (o instanceof Number) {
+                        try {
+                            int x = (int) o;
+                            short s = (short) x;
+                            week_list.add(s);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            break;
+                        }
+                    }
+                }
+
+                courseSectionClass.weekList = week_list;
+                result.add(courseSectionClass);
+            }
+
+            if (result.isEmpty()) {
+                throw new EntityNotFoundException();
+            }
+            else
+                return result;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new IntegrityViolationException();
+        }
     }
 
     @Override
     public CourseSection getCourseSectionByClass(int classId) {
-        try(Connection connection = SQLDataSource.getInstance().getSQLConnection()){
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection()) {
             PreparedStatement prepareStatement = connection.prepareStatement("select y.section_id, c.section_name,c.total_capacity,count(s.student_id) from classes as y inner join course_section c on c.section_id = y.section_id inner join student_selections s on c.section_id = s.section_id where y.classid=? group by y.section_id,c.section_name,c.total_capacity;");
-            prepareStatement.setInt(1,classId);
+            prepareStatement.setInt(1, classId);
             ResultSet resultSet = prepareStatement.executeQuery();
 
-            if(resultSet.next()){
+            if (resultSet.next()) {
                 int id = resultSet.getInt(1);
                 String name = resultSet.getString(2);
                 int total = resultSet.getInt(3);
@@ -257,9 +312,9 @@ public class MyCourseService implements CourseService {
                 courseSection.leftCapacity = left;
 
                 return courseSection;
-            }else
+            } else
                 throw new EntityNotFoundException();
-        }catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
             throw new IntegrityViolationException();
         }
@@ -267,6 +322,66 @@ public class MyCourseService implements CourseService {
 
     @Override
     public List<Student> getEnrolledStudentsInSemester(String courseId, int semesterId) {
-        return null;
+        Connection connection = null;
+        try {
+            connection = SQLDataSource.getInstance().getSQLConnection();
+            connection.setAutoCommit(false);
+
+            List<Student> result = new ArrayList<>();
+            PreparedStatement prepareStatement = connection.prepareStatement("select s.student_id as id, s.first_name||' '||s.last_name as fullname, s.enrolled_date, m.major_id as major_id, m.name as major_name, d.department_id as department_id, d.name as department_name from course_section inner join student_selections ss on course_section.section_id = ss.section_id inner join student as s on s.student_id = ss.student_id inner join major m on m.major_id = s.major_id inner join department d on d.department_id = m.department_id where course_id=? and semester_id=? ;");
+
+            prepareStatement.setString(1, courseId);
+            prepareStatement.setInt(2, semesterId);
+
+            ResultSet resultSet = prepareStatement.executeQuery();
+            connection.commit();
+
+            while (resultSet.next()) {
+                int sid = resultSet.getInt(1);
+                String fullname = resultSet.getString(2);
+                Date date = resultSet.getDate(3);
+
+                Student student = new Student();
+                student.id = sid;
+                student.fullName = fullname;
+                student.enrolledDate = date;
+
+                int mid = resultSet.getInt(4);
+                String mname = resultSet.getString(5);
+
+                Major major = new Major();
+                major.id = mid;
+                major.name = mname;
+
+                student.major = major;
+
+                int did = resultSet.getInt(6);
+                String dname = resultSet.getString(7);
+
+                Department department = new Department();
+                department.id = did;
+                department.name = dname;
+                major.department = department;
+
+                result.add(student);
+            }
+
+            connection.close();
+
+            if (result.isEmpty())
+                throw new EntityNotFoundException();
+            else
+                return result;
+        } catch (SQLException e) {
+            try {
+                if (connection != null) {
+                    connection.rollback();
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            throw new IntegrityViolationException();
+        }
     }
 }
