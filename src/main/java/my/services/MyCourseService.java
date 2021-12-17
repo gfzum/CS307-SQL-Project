@@ -8,12 +8,10 @@ import cn.edu.sustech.cs307.exception.IntegrityViolationException;
 import cn.edu.sustech.cs307.service.CourseService;
 
 import javax.annotation.Nullable;
+import javax.sql.rowset.serial.SerialArray;
 import java.sql.*;
 import java.time.DayOfWeek;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class MyCourseService implements CourseService {
     @Override
@@ -83,6 +81,14 @@ public class MyCourseService implements CourseService {
             stmt.setShort(5, classStart);
             stmt.setShort(6, classEnd);
             stmt.setString(7, location);
+
+// TODO : wxf's flag xxx
+//            int[] t = new int[weekList.size()];
+//            int cnt = 0;
+//            for (Short i : weekList) {
+//                t[cnt++] = i;
+//            }
+//            stmt.setArray(4,connection.createArrayOf("integer",  t)));
             //weeklist
             stmt.executeUpdate();
         } catch (SQLException e) {
