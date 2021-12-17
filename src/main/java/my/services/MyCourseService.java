@@ -38,13 +38,15 @@ public class MyCourseService implements CourseService {
         try {
             connection = SQLDataSource.getInstance().getSQLConnection();
             connection.setAutoCommit(false);
-            PreparedStatement stmt = connection.prepareStatement("insert into course_section (course_id, semester_id, section_name, total_capacity) values(?, ?, ?, ?);", PreparedStatement.RETURN_GENERATED_KEYS);
+            PreparedStatement stmt = connection.prepareStatement("insert into course_section (course_id, semester_id, section_name, total_capacity, left_capacity) values(?, ?, ?, ?, ?);",
+                    PreparedStatement.RETURN_GENERATED_KEYS);
             {
                 int back;
                 stmt.setString(1, courseId);
                 stmt.setInt(2, semesterId);
                 stmt.setString(3, sectionName);
                 stmt.setInt(4, totalCapacity);
+                stmt.setInt(5, totalCapacity);
                 stmt.executeUpdate();
                 ResultSet resultSet = stmt.getGeneratedKeys();
                 if (resultSet.next()) {

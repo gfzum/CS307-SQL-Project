@@ -67,7 +67,7 @@ public final class ProjectJudge {
                     (boolean) params.get(11), (boolean) params.get(12),
                     (int) params.get(13), (int) params.get(14));
         } catch (Throwable t) {
-            t.printStackTrace();
+            //t.printStackTrace();
             return errorCourseList;
         }
     }

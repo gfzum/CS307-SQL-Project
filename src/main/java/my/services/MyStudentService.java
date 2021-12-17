@@ -93,6 +93,11 @@ public class MyStudentService implements StudentService {
 
 
     private boolean courseConflictFound (int studentId, int sectionId){
+
+        if(studentId == 11715274){
+            System.out.println("here");
+        }
+
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
                      "select conf.course_id, conf.section_id from\n" +
@@ -103,7 +108,7 @@ public class MyStudentService implements StudentService {
                              "\n" +
                              "\n" +
                              "join\n" +
-                             "        (select * from classes cls\n" +
+                             "        (select cls.*, cs.semester_id, cs.course_id from classes cls\n" +
                              "        join course_section cs on cls.section_id = cs.section_id) as conf\n" +
                              "\n" +
                              "on ((conf.class_begin<=now.class_begin and conf.class_end>=now.class_end)\n" +
@@ -111,13 +116,13 @@ public class MyStudentService implements StudentService {
                              "    or(conf.class_begin>=now.class_begin and conf.class_begin<=now.class_end)\n" +
                              "    or(conf.class_end>=now.class_begin and conf.class_end<=now.class_end))\n" +
                              "and conf.day_of_week = now.day_of_week\n" +
-                             "and conf.week_list = now.week_list\n" +
+                             "and conf.week_num = now.week_num\n" +
                              "and conf.semester_id = now.semester_id\n" +
                              "\n" +
                              "join\n" +
                              "(select cs.section_id from student_selections ss\n" +
                              "join course_section cs on ss.section_id = cs.section_id\n" +
-                             "where ss.student_id = ? and grade = null ) as stu\n" +
+                             "where ss.student_id = ? and grade is null ) as stu\n" +
                              "on stu.section_id = conf.section_id\n" +
                              "\n" +
                              "union\n" +
@@ -164,7 +169,7 @@ public class MyStudentService implements StudentService {
                     return true;
                 else return false;
             }else
-                return false;
+                throw new EntityNotFoundException();
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -203,9 +208,11 @@ public class MyStudentService implements StudentService {
 
             PreparedStatement stmt = connection.prepareStatement(
                     "insert into student_selections(student_id, section_id) values(?,?);\n" +
-                    "update course_section set left_capacity = left_capacity - 1;");
+                    "update course_section set left_capacity = left_capacity - 1" +
+                            "where section_id = ?;");
             stmt.setInt(1, studentId);
             stmt.setInt(2, sectionId);
+            stmt.setInt(3, sectionId);
             stmt.executeUpdate();
 
             return EnrollResult.SUCCESS;
@@ -226,8 +233,9 @@ public class MyStudentService implements StudentService {
             stmt.setInt(1,studentId);
             stmt.setInt(2,sectionId);
 
-            int ret =stmt.executeUpdate();
-            if( ret <= 0 ) throw new IllegalStateException();
+            if( stmt.executeUpdate() == 0) {
+                throw new IllegalStateException();
+            }
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -245,7 +253,7 @@ public class MyStudentService implements StudentService {
             ResultSet rsst = stmt.executeQuery();
             if(rsst.next()){
                 String ret = rsst.getString(1);
-                return (ret == "PASS_OR_FAIL")?1:0;
+                return (ret.equals("PASS_OR_FAIL"))?0:1;
             }else
                 throw new IntegrityViolationException();
 
@@ -429,7 +437,7 @@ public class MyStudentService implements StudentService {
 
     @Override
     public boolean passedPrerequisitesForCourse(int studentId, String courseId) {
-        return false;
+        return true;
     }
 
     @Override
