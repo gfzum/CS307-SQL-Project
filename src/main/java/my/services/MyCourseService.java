@@ -83,7 +83,8 @@ public class MyCourseService implements CourseService {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection()){
 
             PreparedStatement stmt = connection.prepareStatement(
-                    "insert into classes (section_id, instructor_id, day_of_week, week_num, class_begin, class_end, location) values (?,?,?,?,?,?,?)");
+                    "insert into classes (section_id, instructor_id, day_of_week, week_num, class_begin, class_end, location) values (?,?,?,?,?,?,?)",
+                    PreparedStatement.RETURN_GENERATED_KEYS);
             stmt.setInt(1, sectionId);
             stmt.setInt(2, instructorId);
             stmt.setInt(3, dayOfWeek.getValue());
