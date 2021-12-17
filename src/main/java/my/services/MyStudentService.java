@@ -234,7 +234,7 @@ public class MyStudentService implements StudentService {
             PreparedStatement stmt = connection.prepareStatement(
                     "select grading from course " +
                             "join course_section cs on course.course_id = cs.course_id " +
-                            "where cs.section_id = ?")) {
+                            "where cs.section_id = ?")) {//
             stmt.setInt(1, sectionId);
 
             ResultSet rsst = stmt.executeQuery();
@@ -436,6 +436,7 @@ public class MyStudentService implements StudentService {
                              "from major m\n" +
                              "join department d on m.department_id = d.dept_id\n" +
                              "join student s on m.major_id = s.major_id and s.student_id = ?")) {
+
             stmt.setInt(1,studentId);
             ResultSet rsst =stmt.executeQuery();
             if(rsst.next()){

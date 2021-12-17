@@ -108,11 +108,36 @@ public class MyMajorService implements MajorService{
 
     @Override
     public void addMajorCompulsoryCourse(int majorId, String courseId) {
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection()){
+            String sql = "insert into course_majors (course_id, major_id, course_type) values (?,?,'MAJOR_COMPULSORY')";
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1,courseId);
+            st.setInt(2,majorId);
 
+            st.executeUpdate();
+            st.close();
+
+        } catch (SQLException e){
+            e.printStackTrace();
+            throw new EntityNotFoundException();
+        }
     }
 
     @Override
     public void addMajorElectiveCourse(int majorId, String courseId) {
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection()){
+            String sql = "insert into course_majors (course_id, major_id, course_type) values (?,?,'MAJOR_ELECTIVE')";
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1,courseId);
+            st.setInt(2,majorId);
+
+            st.executeUpdate();
+            st.close();
+
+        } catch (SQLException e){
+            e.printStackTrace();
+            throw new EntityNotFoundException();
+        }
 
     }
 }

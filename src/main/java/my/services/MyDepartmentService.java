@@ -24,7 +24,7 @@ public class MyDepartmentService implements DepartmentService{
 
             if(rs.next())
                 return rs.getInt(1);
-            //EntityNotFound?
+                //EntityNotFound?
             else throw new EntityNotFoundException();
 
         } catch (SQLException e) {
