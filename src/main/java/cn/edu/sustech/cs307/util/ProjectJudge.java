@@ -123,6 +123,7 @@ public final class ProjectJudge {
                 result.passCount.incrementAndGet();
             } catch (IllegalStateException e) {
                 e.printStackTrace();
+                System.err.println(it.get(0) + " " + it.get(1)); //加入错误信息
             }
         });
         result.elapsedTimeNs.set(System.nanoTime() - beforeTime);

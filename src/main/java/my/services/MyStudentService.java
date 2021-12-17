@@ -7,6 +7,7 @@ import cn.edu.sustech.cs307.dto.grade.HundredMarkGrade;
 import cn.edu.sustech.cs307.dto.grade.PassOrFailGrade;
 import cn.edu.sustech.cs307.exception.EntityNotFoundException;
 import cn.edu.sustech.cs307.exception.IntegrityViolationException;
+import cn.edu.sustech.cs307.exception.UnsupportedOperationException;
 import cn.edu.sustech.cs307.service.CourseService;
 import cn.edu.sustech.cs307.service.StudentService;
 
@@ -38,8 +39,12 @@ public class MyStudentService implements StudentService {
     }
 
     @Override
-    public List<CourseSearchEntry> searchCourse(int studentId, int semesterId, @Nullable String searchCid, @Nullable String searchName, @Nullable String searchInstructor, @Nullable DayOfWeek searchDayOfWeek, @Nullable Short searchClassTime, @Nullable List<String> searchClassLocations, CourseType searchCourseType, boolean ignoreFull, boolean ignoreConflict, boolean ignorePassed, boolean ignoreMissingPrerequisites, int pageSize, int pageIndex) {
-        return null;
+    public List<CourseSearchEntry> searchCourse(int studentId, int semesterId, @Nullable String searchCid,
+                                                @Nullable String searchName, @Nullable String searchInstructor, @Nullable DayOfWeek searchDayOfWeek,
+                                                @Nullable Short searchClassTime, @Nullable List<String> searchClassLocations, CourseType searchCourseType,
+                                                boolean ignoreFull, boolean ignoreConflict, boolean ignorePassed, boolean ignoreMissingPrerequisites,
+                                                int pageSize, int pageIndex) {
+        throw new UnsupportedOperationException();
     }
 
     private boolean isEnrolledSection (int studentId, int sectionId) {
