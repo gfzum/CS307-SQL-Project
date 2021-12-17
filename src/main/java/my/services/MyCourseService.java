@@ -1,22 +1,17 @@
 package my.services;
 
 import cn.edu.sustech.cs307.database.SQLDataSource;
-import cn.edu.sustech.cs307.dto.Course;
-import cn.edu.sustech.cs307.dto.CourseSection;
-import cn.edu.sustech.cs307.dto.CourseSectionClass;
-import cn.edu.sustech.cs307.dto.Student;
+import cn.edu.sustech.cs307.dto.*;
 import cn.edu.sustech.cs307.dto.prerequisite.Prerequisite;
 import cn.edu.sustech.cs307.exception.EntityNotFoundException;
 import cn.edu.sustech.cs307.exception.IntegrityViolationException;
 import cn.edu.sustech.cs307.service.CourseService;
 
 import javax.annotation.Nullable;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.DayOfWeek;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -239,7 +234,7 @@ public class MyCourseService implements CourseService {
     @Override
     public CourseSection getCourseSectionByClass(int classId) {
         try(Connection connection = SQLDataSource.getInstance().getSQLConnection()){
-            PreparedStatement prepareStatement = connection.prepareStatement("select y.sectionid, c.sectionname,c.totalcapacity,count(s.studentid) from coursesectionclass as y inner join coursesection c on c.sectionid = y.sectionid inner join studentcourseselection s on c.sectionid = s.sectionid where y.classid=? group by y.sectionid,c.sectionname,c.totalcapacity;");
+            PreparedStatement prepareStatement = connection.prepareStatement("select y.section_id, c.section_name,c.total_capacity,count(s.student_id) from classes as y inner join course_section c on c.section_id = y.section_id inner join student_selections s on c.section_id = s.section_id where y.classid=? group by y.section_id,c.section_name,c.total_capacity;");
             prepareStatement.setInt(1,classId);
             ResultSet resultSet = prepareStatement.executeQuery();
 
