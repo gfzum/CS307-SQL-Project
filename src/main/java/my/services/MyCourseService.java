@@ -30,8 +30,6 @@ public class MyCourseService implements CourseService {
             stmt.setString(5, Grade);
             String pre = prerequisiteToString(prerequisite);
             stmt.setString(6,pre);
-            if(!pre.equals(""))
-                System.out.println("s");
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
