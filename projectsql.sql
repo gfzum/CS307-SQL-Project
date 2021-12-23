@@ -6,7 +6,8 @@ create table course
 	course_name varchar(50) not null,
 	credit integer not null,
 	class_hour integer not null,
-	grading varchar(20)
+	grading varchar(20),
+	prerequisite varchar(500)
 );
 
 create table semester
@@ -138,17 +139,13 @@ create table course_majors
 
 create table prerequisite
 (
+    id serial not null
+        constraint prerequisite_pk
+            primary key,
     course_id varchar(20) not null
         constraint prerequisite_course_id_fk
             references course
                 on delete cascade,
-    precourse_id varchar(20) not null
-        constraint  prerequisite_precourse_id_fk
-            references course
-                on delete cascade,
-    group_id int not null,
-    constraint prerequisite_pk
-        primary key (course_id,precourse_id,group_id)
 );
 
 create table student_selections

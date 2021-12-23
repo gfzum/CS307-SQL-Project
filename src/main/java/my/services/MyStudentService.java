@@ -431,9 +431,58 @@ public class MyStudentService implements StudentService {
 
     }
 
+    private String getPrerequisiteStringByCourseId(String courseId){
+
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
+             PreparedStatement stmt = connection.prepareStatement(
+                     "select prerequisite from course\n" +
+                             "where course_id = ?")) {
+
+            stmt.setString(1,courseId);
+            ResultSet rsst =stmt.executeQuery();
+            if(rsst.next()){
+                return rsst.getString(1);
+            }else{
+                throw new EntityNotFoundException();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private boolean checkSatisfiedCondition(int studentId, String prereStr){
+        if(!prereStr.startsWith("("))
+            return havePassedCourse(studentId,prereStr);
+
+        int cnt = 1, i = 1;
+        for(; i<prereStr.length(); i++) {
+            if (prereStr.charAt(i) == '(') cnt++;
+            if (prereStr.charAt(i) == ')') cnt--;
+            if (cnt == 0) break;
+        }
+
+        if (cnt != 0)
+            throw new IllegalStateException();
+
+        boolean retX = checkSatisfiedCondition( studentId, prereStr.substring( 1, i));
+        boolean retY = checkSatisfiedCondition( studentId, prereStr.substring( i+2, prereStr.length()-1));
+
+        if( prereStr.charAt( i+1) == '&')
+            return retX & retY;
+        else if( prereStr.charAt( i+1) == '|')
+            return retX | retY;
+        else
+            throw new IllegalStateException();
+
+    }
+
     @Override
     public boolean passedPrerequisitesForCourse(int studentId, String courseId) {
-        return true;
+        String prereStr = getPrerequisiteStringByCourseId(courseId);
+        if(checkSatisfiedCondition(studentId, prereStr))
+            return true;
+        else return false;
     }
 
     @Override
