@@ -13,11 +13,9 @@ import cn.edu.sustech.cs307.service.StudentService;
 
 import javax.annotation.Nullable;
 import java.sql.*;
+import java.sql.Date;
 import java.time.DayOfWeek;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MyStudentService implements StudentService {
     @Override
@@ -39,11 +37,57 @@ public class MyStudentService implements StudentService {
     }
 
     @Override
-    public List<CourseSearchEntry> searchCourse(int studentId, int semesterId, @Nullable String searchCid,
-                                                @Nullable String searchName, @Nullable String searchInstructor, @Nullable DayOfWeek searchDayOfWeek,
-                                                @Nullable Short searchClassTime, @Nullable List<String> searchClassLocations, CourseType searchCourseType,
-                                                boolean ignoreFull, boolean ignoreConflict, boolean ignorePassed, boolean ignoreMissingPrerequisites,
-                                                int pageSize, int pageIndex) {
+    public List<CourseSearchEntry> searchCourse
+            (int studentId, int semesterId, @Nullable String searchCid,
+             @Nullable String searchName, @Nullable String searchInstructor, @Nullable DayOfWeek searchDayOfWeek,
+             @Nullable Short searchClassTime, @Nullable List<String> searchClassLocations,
+             CourseType searchCourseType,
+             boolean ignoreFull, boolean ignoreConflict, boolean ignorePassed, boolean ignoreMissingPrerequisites,
+             int pageSize, int pageIndex) {
+
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection()) {
+
+            List<CourseSearchEntry> result = new ArrayList<>();
+            String sql1 = "select from course co\n" +
+                    "    left join course_section cs on co.course_id = cs.course_id\n" +
+                    "    left join student_selections ss on cs.section_id = ss.section_id\n" +
+                    "    left join classes cl on cs.section_id = cl.section_id\n" +
+                    "    left join instructor i on cl.instructor_id = i.instructor_id\n" +
+                    "where student_id = ? and semester_id = ?\n" +
+                    "          and (cs.course_id like ('%'||?||'%') or ? is null)\n" +
+                    "          and (co.course_name || '[' || cs.section_name || ']' like ('%'||?||'%') or ? is null)\n" +
+                    "          and (first_name like (?||'%') or last_name like (?||'%')\n" +
+                    "              or (first_name || last_name) like (?||'%')\n" +
+                    "              or (first_name || ' ' || last_name) like (?||'%') or ? is null)\n" +
+                    "          and (cl.day_of_week = ? or ? is null)\n" +
+                    "          and (? between cl.class_begin and cl.class_end or ? is null)\n" +
+                    "          and (cl.location = Any (?) or ? is null)\n" +
+                    "        ";
+
+            /*todo
+             *  select的东西（course、section、class需要的属性）
+             *  根据学生本专业和course_type共同确定筛选课程，
+             *  得到结果后根据ignore条件进行筛选
+             *      其中，full直接对capacity进行判断，passed和missingPre调用方法
+         *          conflict(将所给参数和student已经选的课冲突的) - course：同属一个course的section，
+         *                   - time：class时间有冲突的section
+         *      page是干什么吃的，不明白
+         *
+             */
+            PreparedStatement st = connection.prepareStatement(sql1);
+
+
+            //ResultSet rsst = stmt.executeQuery();
+
+            //todo day_of_week case
+            CourseSearchEntry cse = new CourseSearchEntry();
+
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new EntityNotFoundException();
+        }
+        //return List.of();
         throw new UnsupportedOperationException();
     }
 
