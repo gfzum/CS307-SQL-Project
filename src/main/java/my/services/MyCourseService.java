@@ -35,7 +35,7 @@ public class MyCourseService implements CourseService {
         }
     }
 
-    public String change_prerequisite(Prerequisite prerequisite) {
+    public String prerequisiteToString(Prerequisite prerequisite) {
         String ans = "";
         if (prerequisite instanceof CoursePrerequisite) {
             ans += prerequisite.toString();
@@ -46,7 +46,7 @@ public class MyCourseService implements CourseService {
                 kh--;
             }
             for (Prerequisite p : ((AndPrerequisite) prerequisite).terms)
-                ans = ans + "&" + change_prerequisite(p) + ")";
+                ans = ans + "&" + prerequisiteToString(p) + ")";
         } else if (prerequisite instanceof OrPrerequisite) {
             int kh = ((OrPrerequisite) prerequisite).terms.size();
             while (kh > 0) {
@@ -54,7 +54,7 @@ public class MyCourseService implements CourseService {
                 kh--;
             }
             for (Prerequisite p : ((OrPrerequisite) prerequisite).terms)
-                ans = ans + "|" + change_prerequisite(p) + ")";
+                ans = ans + "|" + prerequisiteToString(p) + ")";
         }
         return ans;
     }
