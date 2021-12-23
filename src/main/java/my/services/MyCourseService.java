@@ -49,7 +49,8 @@ public class MyCourseService implements CourseService {
                 kh--;
             }
             for (Prerequisite p : ((AndPrerequisite) prerequisite).terms) {
-                ans = ans + "&" + prerequisiteToString(p) + ")";
+                if(ans.equals("")) ans = prerequisiteToString(p) + ")";
+                else ans = ans + "&" + prerequisiteToString(p) + ")";
             }
         } else if (prerequisite instanceof OrPrerequisite) {
             int kh = ((OrPrerequisite) prerequisite).terms.size();
@@ -58,7 +59,8 @@ public class MyCourseService implements CourseService {
                 kh--;
             }
             for (Prerequisite p : ((OrPrerequisite) prerequisite).terms) {
-                ans = ans + "|" + prerequisiteToString(p) + ")";
+                if(ans.equals("")) ans = prerequisiteToString(p) + ")";
+                else ans = ans + "|" + prerequisiteToString(p) + ")";
             }
         }
         return ans;
