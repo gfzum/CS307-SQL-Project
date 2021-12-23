@@ -42,7 +42,7 @@ public class MyCourseService implements CourseService {
             return "";
         String ans = "";
         if (prerequisite instanceof CoursePrerequisite)
-            return ((CoursePrerequisite) prerequisite).courseID;
+            return "(" + ((CoursePrerequisite) prerequisite).courseID + ")";
         if (prerequisite instanceof AndPrerequisite) {
             int kh = ((AndPrerequisite) prerequisite).terms.size();
             while (kh > 1) {
