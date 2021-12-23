@@ -2,6 +2,9 @@ package my.services;
 
 import cn.edu.sustech.cs307.database.SQLDataSource;
 import cn.edu.sustech.cs307.dto.*;
+import cn.edu.sustech.cs307.dto.prerequisite.AndPrerequisite;
+import cn.edu.sustech.cs307.dto.prerequisite.CoursePrerequisite;
+import cn.edu.sustech.cs307.dto.prerequisite.OrPrerequisite;
 import cn.edu.sustech.cs307.dto.prerequisite.Prerequisite;
 import cn.edu.sustech.cs307.exception.EntityNotFoundException;
 import cn.edu.sustech.cs307.exception.IntegrityViolationException;
@@ -32,6 +35,30 @@ public class MyCourseService implements CourseService {
         }
     }
 
+    public String change_prerequisite(Prerequisite prerequisite) {
+        String ans = "";
+        if (prerequisite instanceof CoursePrerequisite) {
+            ans += prerequisite.toString();
+        } else if (prerequisite instanceof AndPrerequisite) {
+            int kh = ((AndPrerequisite) prerequisite).terms.size();
+            while (kh > 0) {
+                ans += "(";
+                kh--;
+            }
+            for (Prerequisite p : ((AndPrerequisite) prerequisite).terms)
+                ans = ans + "&" + change_prerequisite(p) + ")";
+        } else if (prerequisite instanceof OrPrerequisite) {
+            int kh = ((OrPrerequisite) prerequisite).terms.size();
+            while (kh > 0) {
+                ans += "(";
+                kh--;
+            }
+            for (Prerequisite p : ((OrPrerequisite) prerequisite).terms)
+                ans = ans + "|" + change_prerequisite(p) + ")";
+        }
+        return ans;
+    }
+
     @Override
     public int addCourseSection(String courseId, int semesterId, String sectionName, int totalCapacity) {
         Connection connection = null;
@@ -58,7 +85,6 @@ public class MyCourseService implements CourseService {
                     // TODO ：这里为啥要close connection???? commit 有啥用
 
 
-
                     return back;
                 } else {
                     connection.commit();
@@ -82,7 +108,7 @@ public class MyCourseService implements CourseService {
 
     @Override
     public int addCourseSectionClass(int sectionId, int instructorId, DayOfWeek dayOfWeek, Set<Short> weekList, short classStart, short classEnd, String location) {
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection()){
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection()) {
 
             PreparedStatement stmt = connection.prepareStatement(
                     "insert into classes (section_id, instructor_id, day_of_week, week_num, class_begin, class_end, location) values (?,?,?,?,?,?,?)",
@@ -100,9 +126,9 @@ public class MyCourseService implements CourseService {
             stmt.executeUpdate();
             ResultSet rsst = stmt.getGeneratedKeys();
             int classId;
-            if( rsst.next() ){
+            if (rsst.next()) {
                 classId = rsst.getInt(1);
-            }else throw new EntityNotFoundException();
+            } else throw new EntityNotFoundException();
 
             stmt = connection.prepareStatement(
                     "insert into classes (class_id, section_id, instructor_id, day_of_week, week_num, class_begin, class_end, location) values (?,?,?,?,?,?,?,?)");
@@ -114,7 +140,7 @@ public class MyCourseService implements CourseService {
             stmt.setShort(7, classEnd);
             stmt.setString(8, location);
 
-            for(; it.hasNext(); ){
+            for (; it.hasNext(); ) {
                 stmt.setInt(5, (short) it.next());
                 stmt.executeUpdate();
             }
@@ -312,8 +338,7 @@ public class MyCourseService implements CourseService {
 
             if (result.isEmpty()) {
                 return List.of();
-            }
-            else
+            } else
                 return result;
         } catch (SQLException e) {
             e.printStackTrace();
