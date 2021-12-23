@@ -375,21 +375,21 @@ public class MyStudentService implements StudentService {
             PreparedStatement stmt=connection.prepareStatement(
                     "select cs.section_name, c.course_name,\n" +
                             "        i.instructor_id, i.first_name, i.last_name,\n" +
-                            "        cls.class_begin, cls.class_end, cls.location, cls.days\n" +
+                            "        cls.class_begin, cls.class_end, cls.location, cls.day_of_week\n" +
                             "from semester sem\n" +
-                            "inner join course_section cs\n" +
+                            "join course_section cs\n" +
                             "    on cs.semester_id=sem.semester_id\n" +
-                            "inner join classes cls\n" +
+                            "join classes cls\n" +
                             "    on cs.section_id = cls.section_id\n" +
-                            "        and cls.week_list=(floor((? - sem.sem_begin) / 7.0)::integer + 1)\n" +
-                            "inner join course c\n" +
+                            "        and cls.week_num = (floor((? - sem.sem_begin) / 7.0)::integer + 1)\n" +
+                            "join course c\n" +
                             "    on c.course_id = cs.course_id\n" +
-                            "inner join instructor i\n" +
-                            "    on i.instructor_id=cls.instructor_id\n" +
-                            "inner join\n" +
+                            "join instructor i\n" +
+                            "    on i.instructor_id = cls.instructor_id\n" +
+                            "join\n" +
                             "(select section_id from student_selections where student_id = ?) as sec\n" +
                             "    on sec.section_id = cs.section_id\n" +
-                            "where ? between sem.sem_begin and sem.sem_end")){
+                            "where ? between sem.sem_begin and sem.sem_end;")){
 
             stmt.setDate(1,date);
             stmt.setInt(2,studentId);

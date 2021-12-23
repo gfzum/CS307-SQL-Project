@@ -23,7 +23,7 @@ public class MyCourseService implements CourseService {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
                      "insert into course (course_id, course_name, credit, class_hour, grading, prerequisite) values (?,?,?,?,?,?)")) {
-            courseId = courseId.toUpperCase();
+            //courseId = courseId.toUpperCase(); TODO:看看存不存在又大写又小写的课程？
             stmt.setString(1, courseId);
             stmt.setString(2, courseName);
             stmt.setInt(3, credit);
@@ -32,8 +32,6 @@ public class MyCourseService implements CourseService {
             stmt.setString(5, Grade);
             String pre = prerequisiteToString(prerequisite);
             stmt.setString(6,pre);
-            if(!pre.equals(""))
-                System.out.println("s");
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -93,7 +91,8 @@ public class MyCourseService implements CourseService {
         try {
             connection = SQLDataSource.getInstance().getSQLConnection();
             connection.setAutoCommit(false);
-            PreparedStatement stmt = connection.prepareStatement("insert into course_section (course_id, semester_id, section_name, total_capacity, left_capacity) values(?, ?, ?, ?, ?);",
+            PreparedStatement stmt = connection.prepareStatement(
+                    "insert into course_section (course_id, semester_id, section_name, total_capacity, left_capacity) values(?, ?, ?, ?, ?);",
                     PreparedStatement.RETURN_GENERATED_KEYS);
             {
                 int back;
