@@ -30,6 +30,8 @@ public class MyCourseService implements CourseService {
             stmt.setString(5, Grade);
             String pre = prerequisiteToString(prerequisite);
             stmt.setString(6,pre);
+            if(!pre.equals(""))
+                System.out.println("s");
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -38,28 +40,30 @@ public class MyCourseService implements CourseService {
     }
 
     public String prerequisiteToString(Prerequisite prerequisite) {
-        if(prerequisite == null)return "";
+        if(prerequisite == null)
+            return "";
         String ans = "";
-        if (prerequisite instanceof CoursePrerequisite) {
-            ans += ((CoursePrerequisite) prerequisite).courseID;
-        } else if (prerequisite instanceof AndPrerequisite) {
+        if (prerequisite instanceof CoursePrerequisite)
+            return ((CoursePrerequisite) prerequisite).courseID;
+        if (prerequisite instanceof AndPrerequisite) {
             int kh = ((AndPrerequisite) prerequisite).terms.size();
-            while (kh > 0) {
+            while (kh > 1) {
                 ans += "(";
                 kh--;
             }
             for (Prerequisite p : ((AndPrerequisite) prerequisite).terms) {
-                if(ans.equals("")) ans = prerequisiteToString(p) + ")";
+                if (ans.endsWith("(")) ans += prerequisiteToString(p);
                 else ans = ans + "&" + prerequisiteToString(p) + ")";
             }
-        } else if (prerequisite instanceof OrPrerequisite) {
+        }
+        if (prerequisite instanceof OrPrerequisite) {
             int kh = ((OrPrerequisite) prerequisite).terms.size();
-            while (kh > 0) {
+            while (kh > 1) {
                 ans += "(";
                 kh--;
             }
             for (Prerequisite p : ((OrPrerequisite) prerequisite).terms) {
-                if(ans.equals("")) ans = prerequisiteToString(p) + ")";
+                if(ans.endsWith("(")) ans += prerequisiteToString(p);
                 else ans = ans + "|" + prerequisiteToString(p) + ")";
             }
         }
