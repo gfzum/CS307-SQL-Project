@@ -466,7 +466,7 @@ public class MyStudentService implements StudentService {
             throw new IllegalStateException();
 
         boolean retX = checkSatisfiedCondition( studentId, prereStr.substring( 1, i));
-        boolean retY = checkSatisfiedCondition( studentId, prereStr.substring( i+2, prereStr.length()-1));
+        boolean retY = checkSatisfiedCondition( studentId, prereStr.substring( i+3, prereStr.length()-1));
 
         if( prereStr.charAt( i+1) == '&')
             return retX & retY;
@@ -482,6 +482,7 @@ public class MyStudentService implements StudentService {
         String prereStr = getPrerequisiteStringByCourseId(courseId);
         if (prereStr.equals(""))
             return true;
+        prereStr = prereStr.substring( 1, prereStr.length()-1);
         if(checkSatisfiedCondition(studentId, prereStr))
             return true;
         else return false;
