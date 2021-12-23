@@ -480,6 +480,8 @@ public class MyStudentService implements StudentService {
     @Override
     public boolean passedPrerequisitesForCourse(int studentId, String courseId) {
         String prereStr = getPrerequisiteStringByCourseId(courseId);
+        if (prereStr.equals(""))
+            return true;
         if(checkSatisfiedCondition(studentId, prereStr))
             return true;
         else return false;

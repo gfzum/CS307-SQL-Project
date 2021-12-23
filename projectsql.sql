@@ -145,7 +145,7 @@ create table prerequisite
     course_id varchar(20) not null
         constraint prerequisite_course_id_fk
             references course
-                on delete cascade,
+                on delete cascade
 );
 
 create table student_selections
