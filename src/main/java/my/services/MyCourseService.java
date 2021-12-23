@@ -23,6 +23,7 @@ public class MyCourseService implements CourseService {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
                      "insert into course (course_id, course_name, credit, class_hour, grading, prerequisite) values (?,?,?,?,?,?)")) {
+            courseId = courseId.toUpperCase();
             stmt.setString(1, courseId);
             stmt.setString(2, courseName);
             stmt.setInt(3, credit);
