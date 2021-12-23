@@ -21,13 +21,15 @@ public class MyCourseService implements CourseService {
     @Override
     public void addCourse(String courseId, String courseName, int credit, int classHour, Course.CourseGrading grading, @Nullable Prerequisite prerequisite) {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt = connection.prepareStatement("insert into course (course_id, course_name, credit, class_hour, grading) values (?,?,?,?,?)")) {
+             PreparedStatement stmt = connection.prepareStatement("insert into course (course_id, course_name, credit, class_hour, grading, prerequisite) values (?,?,?,?,?,?)")) {
             stmt.setString(1, courseId);
             stmt.setString(2, courseName);
             stmt.setInt(3, credit);
             stmt.setInt(4, classHour);
             String Grade = grading.toString();
             stmt.setString(5, Grade);
+            String pre = prerequisiteToString(prerequisite);
+            stmt.setString(6,pre);
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -36,25 +38,28 @@ public class MyCourseService implements CourseService {
     }
 
     public String prerequisiteToString(Prerequisite prerequisite) {
+        if(prerequisite == null)return "";
         String ans = "";
         if (prerequisite instanceof CoursePrerequisite) {
-            ans += prerequisite.toString();
+            ans += ((CoursePrerequisite) prerequisite).courseID;
         } else if (prerequisite instanceof AndPrerequisite) {
             int kh = ((AndPrerequisite) prerequisite).terms.size();
             while (kh > 0) {
                 ans += "(";
                 kh--;
             }
-            for (Prerequisite p : ((AndPrerequisite) prerequisite).terms)
+            for (Prerequisite p : ((AndPrerequisite) prerequisite).terms) {
                 ans = ans + "&" + prerequisiteToString(p) + ")";
+            }
         } else if (prerequisite instanceof OrPrerequisite) {
             int kh = ((OrPrerequisite) prerequisite).terms.size();
             while (kh > 0) {
                 ans += "(";
                 kh--;
             }
-            for (Prerequisite p : ((OrPrerequisite) prerequisite).terms)
+            for (Prerequisite p : ((OrPrerequisite) prerequisite).terms) {
                 ans = ans + "|" + prerequisiteToString(p) + ")";
+            }
         }
         return ans;
     }
