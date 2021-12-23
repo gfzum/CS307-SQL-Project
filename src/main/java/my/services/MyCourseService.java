@@ -21,7 +21,8 @@ public class MyCourseService implements CourseService {
     @Override
     public void addCourse(String courseId, String courseName, int credit, int classHour, Course.CourseGrading grading, @Nullable Prerequisite prerequisite) {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt = connection.prepareStatement("insert into course (course_id, course_name, credit, class_hour, grading, prerequisite) values (?,?,?,?,?,?)")) {
+             PreparedStatement stmt = connection.prepareStatement(
+                     "insert into course (course_id, course_name, credit, class_hour, grading, prerequisite) values (?,?,?,?,?,?)")) {
             stmt.setString(1, courseId);
             stmt.setString(2, courseName);
             stmt.setInt(3, credit);
@@ -30,6 +31,20 @@ public class MyCourseService implements CourseService {
             stmt.setString(5, Grade);
             String pre = prerequisiteToString(prerequisite);
             stmt.setString(6,pre);
+            if(!pre.equals(""))
+                System.out.println("s");
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new IntegrityViolationException();
+        }
+    }
+
+    private void addCourseToPrerequisite(String courseId){
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
+             PreparedStatement stmt = connection.prepareStatement(
+                     "insert into prerequisite (course_id) values (?)")) {
+            stmt.setString(1, courseId);
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -41,8 +56,11 @@ public class MyCourseService implements CourseService {
         if(prerequisite == null)
             return "";
         String ans = "";
-        if (prerequisite instanceof CoursePrerequisite)
-            return "(" + ((CoursePrerequisite) prerequisite).courseID + ")";
+        if (prerequisite instanceof CoursePrerequisite){
+            String courseId = ((CoursePrerequisite) prerequisite).courseID;
+            addCourseToPrerequisite(courseId);
+            return "(" + courseId + ")";
+        }
         if (prerequisite instanceof AndPrerequisite) {
             int kh = ((AndPrerequisite) prerequisite).terms.size();
             while (kh > 1) {
