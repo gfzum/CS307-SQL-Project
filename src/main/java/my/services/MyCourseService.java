@@ -320,7 +320,7 @@ public class MyCourseService implements CourseService {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection()) {
             List<CourseSectionClass> result = new ArrayList<>();
 
-            PreparedStatement prepareStatement = connection.prepareStatement("select classid, i.student_id as instructor_id, i.first_name||' '||i.last_name as full_name,day_of_week, class_begin, class_end, location, week_list from classes inner join instructor i on i.userid = classes.instructor_id where section_id=? group by class_id, instructor_id, full_name, i.instructor_id, day_of_week, class_begin, class_end, location");
+            PreparedStatement prepareStatement = connection.prepareStatement("select class_id, i.instructor_id as instructor_id, i.first_name||' '||i.last_name as full_name,day_of_week, class_begin, class_end, location, week_list from classes inner join instructor i on i.instructor_id = classes.instructor_id where section_id=? group by class_id, instructor_id, full_name, i.instructor_id, day_of_week, class_begin, class_end, location");
             prepareStatement.setInt(1, sectionId);
             ResultSet resultSet = prepareStatement.executeQuery();
 
@@ -376,7 +376,7 @@ public class MyCourseService implements CourseService {
     @Override
     public CourseSection getCourseSectionByClass(int classId) {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection()) {
-            PreparedStatement prepareStatement = connection.prepareStatement("select y.section_id, c.section_name,c.total_capacity,count(s.student_id) from classes as y inner join course_section c on c.section_id = y.section_id inner join student_selections s on c.section_id = s.section_id where y.classid=? group by y.section_id,c.section_name,c.total_capacity;");
+            PreparedStatement prepareStatement = connection.prepareStatement("select y.section_id, c.section_name,c.total_capacity,count(s.student_id) from classes as y inner join course_section c on c.section_id = y.section_id inner join student_selections s on c.section_id = s.section_id where y.class_id=? group by y.section_id,c.section_name,c.total_capacity;");
             prepareStatement.setInt(1, classId);
             ResultSet resultSet = prepareStatement.executeQuery();
 
@@ -409,7 +409,7 @@ public class MyCourseService implements CourseService {
             connection.setAutoCommit(false);
 
             List<Student> result = new ArrayList<>();
-            PreparedStatement prepareStatement = connection.prepareStatement("select s.student_id as id, s.first_name||' '||s.last_name as fullname, s.enrolled_date, m.major_id as major_id, m.name as major_name, d.department_id as department_id, d.name as department_name from course_section inner join student_selections ss on course_section.section_id = ss.section_id inner join student as s on s.student_id = ss.student_id inner join major m on m.major_id = s.major_id inner join department d on d.department_id = m.department_id where course_id=? and semester_id=? ;");
+            PreparedStatement prepareStatement = connection.prepareStatement("select s.student_id as id, s.first_name||' '||s.last_name as fullname, s.enrolled_date, m.major_id as major_id, m.name as major_name, d.dept_id as department_id, d.dept_name as department_name from course_section inner join student_selections ss on course_section.section_id = ss.section_id inner join student as s on s.student_id = ss.student_id inner join major m on m.major_id = s.major_id inner join department d on d.dept_id = m.department_id where course_id=? and semester_id=? ;");
 
             prepareStatement.setString(1, courseId);
             prepareStatement.setInt(2, semesterId);
