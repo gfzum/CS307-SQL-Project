@@ -1,0 +1,31 @@
+"C:\Program Files\jdk-17\bin\java.exe" "-javaagent:D:\IntelliJ IDEA 2021.2.2\lib\idea_rt.jar=62366:D:\IntelliJ IDEA 2021.2.2\bin" -Dfile.encoding=UTF-8 -classpath "C:\Users\SkyLYnf\OneDrive - 南方科技大学\SQL\CS307-SQL-Project\target\classes;C:\Users\SkyLYnf\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.12.3\jackson-databind-2.12.3.jar;C:\Users\SkyLYnf\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.12.3\jackson-annotations-2.12.3.jar;C:\Users\SkyLYnf\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.12.3\jackson-core-2.12.3.jar;C:\Users\SkyLYnf\.m2\repository\com\google\code\findbugs\jsr305\3.0.2\jsr305-3.0.2.jar;C:\Users\SkyLYnf\.m2\repository\org\postgresql\postgresql\42.2.19\postgresql-42.2.19.jar;C:\Users\SkyLYnf\.m2\repository\org\checkerframework\checker-qual\3.5.0\checker-qual-3.5.0.jar;C:\Users\SkyLYnf\.m2\repository\com\impossibl\pgjdbc-ng\pgjdbc-ng\0.8.7\pgjdbc-ng-0.8.7.jar;C:\Users\SkyLYnf\.m2\repository\com\impossibl\pgjdbc-ng\spy\0.8.7\spy-0.8.7.jar;C:\Users\SkyLYnf\.m2\repository\io\netty\netty-common\4.1.53.Final\netty-common-4.1.53.Final.jar;C:\Users\SkyLYnf\.m2\repository\io\netty\netty-buffer\4.1.53.Final\netty-buffer-4.1.53.Final.jar;C:\Users\SkyLYnf\.m2\repository\io\netty\netty-transport\4.1.53.Final\netty-transport-4.1.53.Final.jar;C:\Users\SkyLYnf\.m2\repository\io\netty\netty-resolver\4.1.53.Final\netty-resolver-4.1.53.Final.jar;C:\Users\SkyLYnf\.m2\repository\io\netty\netty-codec\4.1.53.Final\netty-codec-4.1.53.Final.jar;C:\Users\SkyLYnf\.m2\repository\io\netty\netty-handler\4.1.53.Final\netty-handler-4.1.53.Final.jar;C:\Users\SkyLYnf\.m2\repository\io\netty\netty-transport-native-unix-common\4.1.53.Final\netty-transport-native-unix-common-4.1.53.Final.jar;C:\Users\SkyLYnf\.m2\repository\io\netty\netty-transport-native-kqueue\4.1.53.Final\netty-transport-native-kqueue-4.1.53.Final.jar;C:\Users\SkyLYnf\.m2\repository\io\netty\netty-transport-native-epoll\4.1.53.Final\netty-transport-native-epoll-4.1.53.Final.jar;C:\Users\SkyLYnf\.m2\repository\com\zaxxer\HikariCP\4.0.3\HikariCP-4.0.3.jar;C:\Users\SkyLYnf\.m2\repository\org\slf4j\slf4j-api\2.0.0-alpha1\slf4j-api-2.0.0-alpha1.jar;C:\Users\SkyLYnf\.m2\repository\org\slf4j\slf4j-simple\2.0.0-alpha1\slf4j-simple-2.0.0-alpha1.jar" cn.edu.sustech.cs307.util.ProjectJudge
+Console output is saving to: C:\Users\SkyLYnf\OneDrive - 南方科技大学\SQL\CS307-SQL-Project\log
+[main] INFO com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+[main] INFO com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+Import departments
+Import majors
+Import users
+Import semesters
+Import courses
+Import sections
+Import classes
+Import major courses
+Import time usage: 0.74s
+Test search course 1: 0
+Test search course 1 time: 0.01s
+Test enroll course 1: 1000
+Test enroll course 1 time: 0.89s
+Test drop enrolled course 1: 813
+Test drop enrolled course 1 time: 0.03s
+Import student courses
+Import student courses time: 19.65s
+Test drop course: 0
+Test drop course time: 1181.08s
+Test course table 2: 532
+Test course table 2 time: 0.10s
+Test search course 2: 0
+Test search course 2 time: 0.00s
+Test enroll course 2: 339
+Test enroll course 2 time: 37.69s
+
+Process finished with exit code 0
