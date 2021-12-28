@@ -270,12 +270,18 @@ public class MyStudentService implements StudentService {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
                      "delete from student_selections where student_id = ? and section_id = ?")) {
+
+            connection.setAutoCommit(false);
+
             stmt.setInt(1,studentId);
             stmt.setInt(2,sectionId);
 
             if( stmt.executeUpdate() == 0) {
                 throw new IllegalStateException();
             }
+
+            connection.commit();
+            connection.close();
 
         } catch (SQLException e) {
             e.printStackTrace();

@@ -163,3 +163,9 @@ create table student_selections
                 on delete cascade,
     grade int
 );
+
+create index student_course_selection_index
+    on student_selections (student_id, section_id);
+
+create index student_course_selection_index_2
+    on student_selections (student_id);
