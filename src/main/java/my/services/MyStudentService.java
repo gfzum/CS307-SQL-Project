@@ -122,12 +122,11 @@ public class MyStudentService implements StudentService {
 
             ResultSet rsst = stmt.executeQuery();
 
-            if(rsst.next()){
-                if( rsst.getInt(1) >= 60 )
+            while(rsst.next()){
+                if(rsst.getInt(1) >= 60 )
                     return true;
-                else return false;
-            }else
-                return false;
+            }
+            return false;
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -221,6 +220,10 @@ public class MyStudentService implements StudentService {
     @Override
     public EnrollResult enrollCourse(int studentId, int sectionId) {
 
+        if(studentId == 11716463){
+            System.out.println("wa!!!");
+        }
+
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection()){
 
             MyCourseService mcs = new MyCourseService();
@@ -228,21 +231,27 @@ public class MyStudentService implements StudentService {
             try {
                 course = mcs.getCourseBySection(sectionId);
             } catch (EntityNotFoundException e){
+                System.out.println("COURSE_NOT_FOUND");
                 return EnrollResult.COURSE_NOT_FOUND;
             }
             if(isEnrolledSection( studentId, sectionId)){
+                System.out.println("ALREADY_ENROLLED");
                 return EnrollResult.ALREADY_ENROLLED;
             }
             if( havePassedCourse( studentId, course.id) ){
+                System.out.println("ALREADY_PASSED");
                 return EnrollResult.ALREADY_PASSED;
             }
             if( !passedPrerequisitesForCourse( studentId, course.id)){
+                System.out.println("PREREQUISITES_NOT_FULFILLED");
                 return EnrollResult.PREREQUISITES_NOT_FULFILLED;
             }
             if( courseConflictFound( studentId, sectionId)){
+                System.out.println("COURSE_CONFLICT_FOUND");
                 return EnrollResult.COURSE_CONFLICT_FOUND;
             }
             if( !checkHaveLeftCapacity( sectionId ) ){
+                System.out.println("COURSE_IS_FULL");
                 return EnrollResult.COURSE_IS_FULL;
             }
 
@@ -255,6 +264,7 @@ public class MyStudentService implements StudentService {
             stmt.setInt(3, sectionId);
             stmt.executeUpdate();
 
+            System.out.println("SUCCESS");
             return EnrollResult.SUCCESS;
 
         } catch (SQLException e) {

@@ -23,3 +23,9 @@ json文件中，major和department是有ID的，但是传入函数中并没有�
 然后发现dropCourse的得分是零分，左思右想也没有想明白为什么是0，然后ProjectJudge也并没有给出原因和错误信息。只好回去看一下文档了
 
 好的 然后发现dropCourse是一个所有点都需要报错的测试，好吧，理解错题意了
+
+然后发现我们的enrollCourse2，甚至于有了一个每次运行都不一样的正确点数。
+然后事实上我在写判断是否AlreadyPassCourse的时候只判断了其中某一节的section是否大于六十分，实际上应该判断是否每一节section都小于六十分，不然就是算通过的。
+另一种方法就是在写sql的时候返回值按照grade大小排序也可以。
+
+于是enrollCourse2稳定在了787个点
