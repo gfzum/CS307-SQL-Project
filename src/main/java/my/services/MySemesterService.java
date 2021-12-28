@@ -20,7 +20,7 @@ public class MySemesterService implements SemesterService {
                      "insert into semester (sem_name, sem_begin, sem_end) values (?,?,?);", PreparedStatement.RETURN_GENERATED_KEYS)) {
             st.setString(1, name);
             st.setDate(2, begin);
-            st.setDate(3, begin);
+            st.setDate(3, end);
             st.executeUpdate();
 
             ResultSet rs = st.getGeneratedKeys();
