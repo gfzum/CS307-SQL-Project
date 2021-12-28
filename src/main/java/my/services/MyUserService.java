@@ -116,7 +116,7 @@ public class MyUserService implements UserService{
     //构建fullName方法，public static 共全局调用
     public static String getFullName(String firstName, String lastName){
         if (firstName.matches("[a-zA-Z ]+") && lastName.matches("[a-zA-Z ]+")){
-            System.out.println(firstName + " " + lastName);
+            //System.out.println(firstName + " " + lastName);
             return firstName + " " + lastName;
         }
         return firstName + lastName;
