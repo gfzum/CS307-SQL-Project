@@ -170,7 +170,7 @@ public final class ProjectJudge {
                         studentService.dropCourse(student, section);
                     } catch (IllegalStateException e) {
                         result.passCount.getAndIncrement();
-                        System.out.println(student + " " + section);
+                        //System.out.println(student + " " + section); TODO:我是真的不知道为啥这里要println出来 就很离谱 --ylm
                     }
                 }
             });

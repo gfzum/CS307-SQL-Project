@@ -265,13 +265,29 @@ public class MyStudentService implements StudentService {
     }
 
     @Override
-    public void dropCourse(int studentId, int sectionId) throws IllegalStateException {
+    public void dropCourse(int studentId, int sectionId){
 
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt = connection.prepareStatement(
-                     "delete from student_selections where student_id = ? and section_id = ?")) {
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection()) {
 
-            connection.setAutoCommit(false);
+            PreparedStatement stmt = connection.prepareStatement(
+                    "select grade from student_selections\n" +
+                    "where student_id = ? and section_id = ?");
+
+            stmt.setInt(1,studentId);
+            stmt.setInt(2,sectionId);
+
+            ResultSet rsst = stmt.executeQuery();
+
+            if(rsst.next()){
+                if (rsst.getString(1) != null ){
+                    throw new IllegalStateException();
+                }
+            }else{
+                throw new IllegalStateException();
+            }
+
+            stmt = connection.prepareStatement(
+                    "delete from student_selections where student_id = ? and section_id = ?");
 
             stmt.setInt(1,studentId);
             stmt.setInt(2,sectionId);
@@ -280,11 +296,9 @@ public class MyStudentService implements StudentService {
                 throw new IllegalStateException();
             }
 
-            connection.commit();
-            connection.close();
-
         } catch (SQLException e) {
             e.printStackTrace();
+            throw new IllegalStateException();
         }
     }
 
