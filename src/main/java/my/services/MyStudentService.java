@@ -24,12 +24,12 @@ public class MyStudentService implements StudentService {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement("insert into student(student_id, first_name, last_name, " +
                      "enrolled_date, major_id) values (?,?,?,?,?)")) {
-             stmt.setInt(1,userId);
-             stmt.setString(2,firstName);
-             stmt.setString(3,lastName);
-             stmt.setDate(4,enrolledDate);
-             stmt.setInt(5,majorId);
-             stmt.execute();
+            stmt.setInt(1, userId);
+            stmt.setString(2, firstName);
+            stmt.setString(3, lastName);
+            stmt.setDate(4, enrolledDate);
+            stmt.setInt(5, majorId);
+            stmt.execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -69,10 +69,10 @@ public class MyStudentService implements StudentService {
              *  根据学生本专业和course_type共同确定筛选课程，
              *  得到结果后根据ignore条件进行筛选
              *      其中，full直接对capacity进行判断，passed和missingPre调用方法
-         *          conflict(将所给参数和student已经选的课冲突的) - course：同属一个course的section，
-         *                   - time：class时间有冲突的section
-         *      page是干什么吃的，不明白
-         *
+             *          conflict(将所给参数和student已经选的课冲突的) - course：同属一个course的section，
+             *                   - time：class时间有冲突的section
+             *      page是干什么吃的，不明白
+             *
              */
             PreparedStatement st = connection.prepareStatement(sql1);
 
@@ -91,18 +91,18 @@ public class MyStudentService implements StudentService {
         throw new UnsupportedOperationException();
     }
 
-    private boolean isEnrolledSection (int studentId, int sectionId) {
+    private boolean isEnrolledSection(int studentId, int sectionId) {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
                      "select student_id from student_selections\n" +
                              "where student_id = ? and section_id = ?")) {
             stmt.setInt(1, studentId);
-            stmt.setInt(2,sectionId);
+            stmt.setInt(2, sectionId);
 
             ResultSet rsst = stmt.executeQuery();
-            if(rsst.next()){
+            if (rsst.next()) {
                 return true;
-            }else
+            } else
                 return false;
 
         } catch (SQLException e) {
@@ -111,7 +111,7 @@ public class MyStudentService implements StudentService {
         }
     }
 
-    private boolean havePassedCourse (int studentId, String courseId) {
+    private boolean havePassedCourse(int studentId, String courseId) {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
                      "select grade from student_selections\n" +
@@ -122,11 +122,12 @@ public class MyStudentService implements StudentService {
 
             ResultSet rsst = stmt.executeQuery();
 
-            while(rsst.next()){
-                if(rsst.getInt(1) >= 60 )
+            if (rsst.next()) {
+                if (rsst.getInt(1) >= 60)
                     return true;
-            }
-            return false;
+                else return false;
+            } else
+                return false;
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -135,7 +136,7 @@ public class MyStudentService implements StudentService {
     }
 
 
-    private boolean courseConflictFound (int studentId, int sectionId){
+    private boolean courseConflictFound(int studentId, int sectionId) {
 
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
@@ -182,9 +183,9 @@ public class MyStudentService implements StudentService {
 
             ResultSet rsst = stmt.executeQuery();
 
-            if(rsst.next()){
+            if (rsst.next()) {
                 return true;
-            }else
+            } else
                 return false;
 
         } catch (SQLException e) {
@@ -194,7 +195,7 @@ public class MyStudentService implements StudentService {
     }
 
 
-    private boolean checkHaveLeftCapacity (int sectionId) {
+    private boolean checkHaveLeftCapacity(int sectionId) {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
                      "select left_capacity from course_section\n" +
@@ -203,11 +204,11 @@ public class MyStudentService implements StudentService {
 
             ResultSet rsst = stmt.executeQuery();
 
-            if(rsst.next()){
-                if( rsst.getInt(1) >= 1 )
+            if (rsst.next()) {
+                if (rsst.getInt(1) >= 1)
                     return true;
                 else return false;
-            }else
+            } else
                 throw new EntityNotFoundException();
 
         } catch (SQLException e) {
@@ -220,51 +221,40 @@ public class MyStudentService implements StudentService {
     @Override
     public EnrollResult enrollCourse(int studentId, int sectionId) {
 
-        if(studentId == 11716463){
-            System.out.println("wa!!!");
-        }
-
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection()){
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection()) {
 
             MyCourseService mcs = new MyCourseService();
             Course course;
             try {
                 course = mcs.getCourseBySection(sectionId);
-            } catch (EntityNotFoundException e){
-                System.out.println("COURSE_NOT_FOUND");
+            } catch (EntityNotFoundException e) {
                 return EnrollResult.COURSE_NOT_FOUND;
             }
-            if(isEnrolledSection( studentId, sectionId)){
-                System.out.println("ALREADY_ENROLLED");
+            if (isEnrolledSection(studentId, sectionId)) {
                 return EnrollResult.ALREADY_ENROLLED;
             }
-            if( havePassedCourse( studentId, course.id) ){
-                System.out.println("ALREADY_PASSED");
+            if (havePassedCourse(studentId, course.id)) {
                 return EnrollResult.ALREADY_PASSED;
             }
-            if( !passedPrerequisitesForCourse( studentId, course.id)){
-                System.out.println("PREREQUISITES_NOT_FULFILLED");
+            if (!passedPrerequisitesForCourse(studentId, course.id)) {
                 return EnrollResult.PREREQUISITES_NOT_FULFILLED;
             }
-            if( courseConflictFound( studentId, sectionId)){
-                System.out.println("COURSE_CONFLICT_FOUND");
+            if (courseConflictFound(studentId, sectionId)) {
                 return EnrollResult.COURSE_CONFLICT_FOUND;
             }
-            if( !checkHaveLeftCapacity( sectionId ) ){
-                System.out.println("COURSE_IS_FULL");
+            if (!checkHaveLeftCapacity(sectionId)) {
                 return EnrollResult.COURSE_IS_FULL;
             }
 
             PreparedStatement stmt = connection.prepareStatement(
                     "insert into student_selections(student_id, section_id) values(?,?);\n" +
-                    "update course_section set left_capacity = left_capacity - 1" +
+                            "update course_section set left_capacity = left_capacity - 1" +
                             "where section_id = ?;");
             stmt.setInt(1, studentId);
             stmt.setInt(2, sectionId);
             stmt.setInt(3, sectionId);
             stmt.executeUpdate();
 
-            System.out.println("SUCCESS");
             return EnrollResult.SUCCESS;
 
         } catch (SQLException e) {
@@ -275,34 +265,34 @@ public class MyStudentService implements StudentService {
     }
 
     @Override
-    public void dropCourse(int studentId, int sectionId){
+    public void dropCourse(int studentId, int sectionId) {
 
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection()) {
 
             PreparedStatement stmt = connection.prepareStatement(
                     "select grade from student_selections\n" +
-                    "where student_id = ? and section_id = ?");
+                            "where student_id = ? and section_id = ?");
 
-            stmt.setInt(1,studentId);
-            stmt.setInt(2,sectionId);
+            stmt.setInt(1, studentId);
+            stmt.setInt(2, sectionId);
 
             ResultSet rsst = stmt.executeQuery();
 
-            if(rsst.next()){
-                if (rsst.getString(1) != null ){
+            if (rsst.next()) {
+                if (rsst.getString(1) != null) {
                     throw new IllegalStateException();
                 }
-            }else{
+            } else {
                 throw new IllegalStateException();
             }
 
             stmt = connection.prepareStatement(
                     "delete from student_selections where student_id = ? and section_id = ?");
 
-            stmt.setInt(1,studentId);
-            stmt.setInt(2,sectionId);
+            stmt.setInt(1, studentId);
+            stmt.setInt(2, sectionId);
 
-            if( stmt.executeUpdate() == 0) {
+            if (stmt.executeUpdate() == 0) {
                 throw new IllegalStateException();
             }
 
@@ -312,19 +302,19 @@ public class MyStudentService implements StudentService {
         }
     }
 
-    private int getSectionGradeType(int sectionId){
+    private int getSectionGradeType(int sectionId) {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-            PreparedStatement stmt = connection.prepareStatement(
-                    "select grading from course " +
-                            "join course_section cs on course.course_id = cs.course_id " +
-                            "where cs.section_id = ?")) {//
+             PreparedStatement stmt = connection.prepareStatement(
+                     "select grading from course " +
+                             "join course_section cs on course.course_id = cs.course_id " +
+                             "where cs.section_id = ?")) {//
             stmt.setInt(1, sectionId);
 
             ResultSet rsst = stmt.executeQuery();
-            if(rsst.next()){
+            if (rsst.next()) {
                 String ret = rsst.getString(1);
-                return (ret.equals("PASS_OR_FAIL"))?0:1;
-            }else
+                return (ret.equals("PASS_OR_FAIL")) ? 0 : 1;
+            } else
                 throw new IntegrityViolationException();
 
         } catch (SQLException e) {
@@ -337,7 +327,7 @@ public class MyStudentService implements StudentService {
 
         int sectionGradeType;
         sectionGradeType = getSectionGradeType(sectionId);
-        if(grade != null) {
+        if (grade != null) {
             if (grade instanceof PassOrFailGrade)
                 if (sectionGradeType != 0) throw new IntegrityViolationException();
             if (grade instanceof HundredMarkGrade)
@@ -345,20 +335,20 @@ public class MyStudentService implements StudentService {
         }
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
-                     "insert into student_selections (grade, student_id, section_id) values (?,?,?)")){
+                     "insert into student_selections (grade, student_id, section_id) values (?,?,?)")) {
 
-            if(grade == null){
-                stmt.setObject(1,null);
-            }else if(sectionGradeType == 1)
-                stmt.setInt(1,((HundredMarkGrade)grade).mark);
-            else stmt.setInt(1,(((PassOrFailGrade)grade) == PassOrFailGrade.PASS)?60:0);
-            stmt.setInt(2,studentId);
-            stmt.setInt(3,sectionId);
+            if (grade == null) {
+                stmt.setObject(1, null);
+            } else if (sectionGradeType == 1)
+                stmt.setInt(1, ((HundredMarkGrade) grade).mark);
+            else stmt.setInt(1, (((PassOrFailGrade) grade) == PassOrFailGrade.PASS) ? 60 : 0);
+            stmt.setInt(2, studentId);
+            stmt.setInt(3, sectionId);
 
             int ret = stmt.executeUpdate();
-            if( ret <= 0 )throw new IntegrityViolationException();
+            if (ret <= 0) throw new IntegrityViolationException();
 
-        } catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
         }
 
@@ -369,25 +359,25 @@ public class MyStudentService implements StudentService {
 
         int sectionGradeType;
         sectionGradeType = getSectionGradeType(sectionId);
-        if(grade instanceof PassOrFailGrade)
-            if(sectionGradeType != 0) throw new IntegrityViolationException();
-        if(grade instanceof HundredMarkGrade)
-            if(sectionGradeType != 1) throw new IntegrityViolationException();
+        if (grade instanceof PassOrFailGrade)
+            if (sectionGradeType != 0) throw new IntegrityViolationException();
+        if (grade instanceof HundredMarkGrade)
+            if (sectionGradeType != 1) throw new IntegrityViolationException();
 
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
-                     "update student_selections set grade = ? where student_id = ? and section_id = ?")){
+                     "update student_selections set grade = ? where student_id = ? and section_id = ?")) {
 
-            if(sectionGradeType == 1)
-                stmt.setInt(1,((HundredMarkGrade)grade).mark);
-            else stmt.setInt(1,(((PassOrFailGrade)grade) == PassOrFailGrade.PASS)?60:0);
-            stmt.setInt(2,studentId);
-            stmt.setInt(3,sectionId);
+            if (sectionGradeType == 1)
+                stmt.setInt(1, ((HundredMarkGrade) grade).mark);
+            else stmt.setInt(1, (((PassOrFailGrade) grade) == PassOrFailGrade.PASS) ? 60 : 0);
+            stmt.setInt(2, studentId);
+            stmt.setInt(3, sectionId);
 
             int ret = stmt.executeUpdate();
-            if( ret <= 0 )throw new IntegrityViolationException();
+            if (ret <= 0) throw new IntegrityViolationException();
 
-        } catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
         }
 
@@ -445,78 +435,78 @@ public class MyStudentService implements StudentService {
     @Override
     public CourseTable getCourseTable(int studentId, Date date) {
 
-        try (Connection connection=SQLDataSource.getInstance().getSQLConnection();
-            PreparedStatement stmt=connection.prepareStatement(
-                    "select cs.section_name, c.course_name,\n" +
-                            "        i.instructor_id, i.first_name, i.last_name,\n" +
-                            "        cls.class_begin, cls.class_end, cls.location, cls.day_of_week\n" +
-                            "from semester sem\n" +
-                            "join course_section cs\n" +
-                            "    on cs.semester_id=sem.semester_id\n" +
-                            "join classes cls\n" +
-                            "    on cs.section_id = cls.section_id\n" +
-                            "        and cls.week_num = (floor((? - sem.sem_begin) / 7.0)::integer + 1)\n" +
-                            "join course c\n" +
-                            "    on c.course_id = cs.course_id\n" +
-                            "join instructor i\n" +
-                            "    on i.instructor_id = cls.instructor_id\n" +
-                            "join\n" +
-                            "(select section_id from student_selections where student_id = ?) as sec\n" +
-                            "    on sec.section_id = cs.section_id\n" +
-                            "where ? between sem.sem_begin and sem.sem_end;")){
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
+             PreparedStatement stmt = connection.prepareStatement(
+                     "select cs.section_name, c.course_name,\n" +
+                             "        i.instructor_id, i.first_name, i.last_name,\n" +
+                             "        cls.class_begin, cls.class_end, cls.location, cls.day_of_week\n" +
+                             "from semester sem\n" +
+                             "join course_section cs\n" +
+                             "    on cs.semester_id=sem.semester_id\n" +
+                             "join classes cls\n" +
+                             "    on cs.section_id = cls.section_id\n" +
+                             "        and cls.week_num = (floor((? - sem.sem_begin) / 7.0)::integer + 1)\n" +
+                             "join course c\n" +
+                             "    on c.course_id = cs.course_id\n" +
+                             "join instructor i\n" +
+                             "    on i.instructor_id = cls.instructor_id\n" +
+                             "join\n" +
+                             "(select section_id from student_selections where student_id = ?) as sec\n" +
+                             "    on sec.section_id = cs.section_id\n" +
+                             "where ? between sem.sem_begin and sem.sem_end;")) {
 
-            stmt.setDate(1,date);
-            stmt.setInt(2,studentId);
-            stmt.setDate(3,date);
+            stmt.setDate(1, date);
+            stmt.setInt(2, studentId);
+            stmt.setDate(3, date);
 
             ResultSet rsst = stmt.executeQuery();
 
             CourseTable ret = new CourseTable();
             ret.table = new HashMap<>();
-            for (DayOfWeek day: DayOfWeek.values())
+            for (DayOfWeek day : DayOfWeek.values())
                 ret.table.put(day, new HashSet<>());
 
-            while (rsst.next()){
+            while (rsst.next()) {
 
                 CourseTable.CourseTableEntry entry = new CourseTable.CourseTableEntry();
 
                 entry.courseFullName =
-                        String.format("%s[%s]",rsst.getString(2),rsst.getString(1));
+                        String.format("%s[%s]", rsst.getString(2), rsst.getString(1));
 
                 Instructor ins = new Instructor();
                 ins.id = rsst.getInt(3);
-                ins.fullName = MyUserService.getFullName( rsst.getString(4), rsst.getString(5) );
+                ins.fullName = MyUserService.getFullName(rsst.getString(4), rsst.getString(5));
                 entry.instructor = ins;
 
-                entry.classBegin = (short)rsst.getInt(6);
-                entry.classEnd = (short)rsst.getInt(7);
+                entry.classBegin = (short) rsst.getInt(6);
+                entry.classEnd = (short) rsst.getInt(7);
                 entry.location = rsst.getString(8);
 
-                DayOfWeek day = DayOfWeek.of( rsst.getInt(9) );
+                DayOfWeek day = DayOfWeek.of(rsst.getInt(9));
                 ret.table.get(day).add(entry);
             }
 
             return ret;
 
-        }catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
             throw new IntegrityViolationException();
         }
 
     }
 
-    private String getPrerequisiteStringByCourseId(String courseId){
+    private String getPrerequisiteStringByCourseId(String courseId) {
 
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
                      "select prerequisite from course\n" +
                              "where course_id = ?")) {
 
-            stmt.setString(1,courseId);
-            ResultSet rsst =stmt.executeQuery();
-            if(rsst.next()){
+            stmt.setString(1, courseId);
+            ResultSet rsst = stmt.executeQuery();
+            if (rsst.next()) {
                 return rsst.getString(1);
-            }else{
+            } else {
                 throw new EntityNotFoundException();
             }
         } catch (SQLException e) {
@@ -525,12 +515,12 @@ public class MyStudentService implements StudentService {
         return null;
     }
 
-    private boolean checkSatisfiedCondition(int studentId, String prereStr){
-        if(!prereStr.startsWith("("))
-            return havePassedCourse(studentId,prereStr);
+    private boolean checkSatisfiedCondition(int studentId, String prereStr) {
+        if (!prereStr.startsWith("("))
+            return havePassedCourse(studentId, prereStr);
 
         int cnt = 1, i = 1;
-        for(; i<prereStr.length(); i++) {
+        for (; i < prereStr.length(); i++) {
             if (prereStr.charAt(i) == '(') cnt++;
             if (prereStr.charAt(i) == ')') cnt--;
             if (cnt == 0) break;
@@ -539,12 +529,12 @@ public class MyStudentService implements StudentService {
         if (cnt != 0)
             throw new IllegalStateException();
 
-        boolean retX = checkSatisfiedCondition( studentId, prereStr.substring( 1, i));
-        boolean retY = checkSatisfiedCondition( studentId, prereStr.substring( i+3, prereStr.length()-1));
+        boolean retX = checkSatisfiedCondition(studentId, prereStr.substring(1, i));
+        boolean retY = checkSatisfiedCondition(studentId, prereStr.substring(i + 3, prereStr.length() - 1));
 
-        if( prereStr.charAt( i+1) == '&')
+        if (prereStr.charAt(i + 1) == '&')
             return retX & retY;
-        else if( prereStr.charAt( i+1) == '|')
+        else if (prereStr.charAt(i + 1) == '|')
             return retX | retY;
         else
             throw new IllegalStateException();
@@ -556,8 +546,8 @@ public class MyStudentService implements StudentService {
         String prereStr = getPrerequisiteStringByCourseId(courseId);
         if (prereStr.equals(""))
             return true;
-        prereStr = prereStr.substring( 1, prereStr.length()-1);
-        if(checkSatisfiedCondition(studentId, prereStr))
+        prereStr = prereStr.substring(1, prereStr.length() - 1);
+        if (checkSatisfiedCondition(studentId, prereStr))
             return true;
         else return false;
     }
@@ -572,9 +562,9 @@ public class MyStudentService implements StudentService {
                              "join department d on m.department_id = d.dept_id\n" +
                              "join student s on m.major_id = s.major_id and s.student_id = ?")) {
 
-            stmt.setInt(1,studentId);
-            ResultSet rsst =stmt.executeQuery();
-            if(rsst.next()){
+            stmt.setInt(1, studentId);
+            ResultSet rsst = stmt.executeQuery();
+            if (rsst.next()) {
                 Major ret = new Major();
                 ret.id = rsst.getInt(1);
                 ret.name = rsst.getString(2);
@@ -582,11 +572,11 @@ public class MyStudentService implements StudentService {
                 ret.department.id = rsst.getInt(3);
                 ret.department.name = rsst.getString(4);
                 return ret;
-            }else{
+            } else {
                 throw new EntityNotFoundException();
             }
         } catch (SQLException e) {
-             e.printStackTrace();
+            e.printStackTrace();
         }
         return null;
     }
