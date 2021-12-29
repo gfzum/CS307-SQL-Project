@@ -31,3 +31,4 @@ json文件中，major和department是有ID的，但是传入函数中并没有�
 于是enrollCourse2稳定在了787个点，开始de剩下的bug
 
 然后发现bug出现在COURSE_CONFLICT这个点上
+

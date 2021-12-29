@@ -496,12 +496,16 @@ public class MyStudentService implements StudentService {
             }
 
             PreparedStatement stmt = connection.prepareStatement(
-                    "insert into student_selections(student_id, section_id) values(?,?);\n" +
-                            "update course_section set left_capacity = left_capacity - 1" +
-                            "where section_id = ?;");
+                    "insert into student_selections(student_id, section_id) values(?,?);\n"); //TODO： 一定一定一定要自己做一组数据测试一下leftcapacity！！
             stmt.setInt(1, studentId);
             stmt.setInt(2, sectionId);
-            stmt.setInt(3, sectionId);
+
+            stmt.executeUpdate();
+
+            stmt = connection.prepareStatement("update course_section set left_capacity = left_capacity - 1\n " +
+                   "where section_id = ?;");
+
+            stmt.setInt(1, sectionId);
             stmt.executeUpdate();
 
             //System.out.println("SUCCESS");
