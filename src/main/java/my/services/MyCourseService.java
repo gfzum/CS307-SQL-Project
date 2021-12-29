@@ -31,7 +31,7 @@ public class MyCourseService implements CourseService {
             String Grade = grading.toString();
             stmt.setString(5, Grade);
             String pre = prerequisiteToString(prerequisite);
-            stmt.setString(6,pre);
+            stmt.setString(6, pre);
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -39,7 +39,7 @@ public class MyCourseService implements CourseService {
         }
     }
 
-    private void addCourseToPrerequisite(String courseId){
+    private void addCourseToPrerequisite(String courseId) {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
                      "insert into prerequisite (course_id) values (?)")) {
@@ -52,10 +52,10 @@ public class MyCourseService implements CourseService {
     }
 
     public String prerequisiteToString(Prerequisite prerequisite) {
-        if(prerequisite == null)
+        if (prerequisite == null)
             return "";
         String ans = "";
-        if (prerequisite instanceof CoursePrerequisite){
+        if (prerequisite instanceof CoursePrerequisite) {
             String courseId = ((CoursePrerequisite) prerequisite).courseID;
             addCourseToPrerequisite(courseId);
             return "(" + courseId + ")";
@@ -78,7 +78,7 @@ public class MyCourseService implements CourseService {
                 kh--;
             }
             for (Prerequisite p : ((OrPrerequisite) prerequisite).terms) {
-                if(ans.endsWith("(")) ans += prerequisiteToString(p);
+                if (ans.endsWith("(")) ans += prerequisiteToString(p);
                 else ans = ans + "|" + prerequisiteToString(p) + ")";
             }
         }
@@ -320,7 +320,7 @@ public class MyCourseService implements CourseService {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection()) {
             List<CourseSectionClass> result = new ArrayList<>();
 
-            PreparedStatement prepareStatement = connection.prepareStatement("select class_id, i.instructor_id as instructor_id, i.first_name||' '||i.last_name as full_name,day_of_week, class_begin, class_end, location, week_list from classes inner join instructor i on i.instructor_id = classes.instructor_id where section_id=? group by class_id, instructor_id, full_name, i.instructor_id, day_of_week, class_begin, class_end, location");
+            PreparedStatement prepareStatement = connection.prepareStatement("select class_id, i.instructor_id as instructor_id, i.first_name||' '||i.last_name as full_name,day_of_week, class_begin, class_end, location, week_num from classes inner join instructor i on i.instructor_id = classes.instructor_id where section_id=? group by class_id, instructor_id, full_name, i.instructor_id, day_of_week, class_begin, class_end, location");
             prepareStatement.setInt(1, sectionId);
             ResultSet resultSet = prepareStatement.executeQuery();
 
@@ -409,7 +409,15 @@ public class MyCourseService implements CourseService {
             connection.setAutoCommit(false);
 
             List<Student> result = new ArrayList<>();
-            PreparedStatement prepareStatement = connection.prepareStatement("select s.student_id as id, s.first_name||' '||s.last_name as fullname, s.enrolled_date, m.major_id as major_id, m.name as major_name, d.dept_id as department_id, d.dept_name as department_name from course_section inner join student_selections ss on course_section.section_id = ss.section_id inner join student as s on s.student_id = ss.student_id inner join major m on m.major_id = s.major_id inner join department d on d.dept_id = m.department_id where course_id=? and semester_id=? ;");
+            PreparedStatement prepareStatement = connection.prepareStatement(
+                    "select s.student_id as id, " +
+                    "s.first_name||' '||s.last_name as fullname, s.enrolled_date, " +
+                    "m.major_id as major_id, m.name as major_name, d.dept_id as department_id, " +
+                    "d.dept_name as department_name " +
+                    "from course_section inner join student_selections ss on course_section.section_id = ss.section_id " +
+                    "inner join student as s on s.student_id = ss.student_id " +
+                    "inner join major m on m.major_id = s.major_id " +
+                    "inner join department d on d.dept_id = m.department_id where course_id=? and semester_id=? ;");
 
             prepareStatement.setString(1, courseId);
             prepareStatement.setInt(2, semesterId);

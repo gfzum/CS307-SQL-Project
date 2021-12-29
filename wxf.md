@@ -14,3 +14,22 @@ MyUserService 中的 removeUser 与 getUser方法，UserId应该同时面向stud
 是否会因为第一条语句throw exception后导致第二条语句不执行？
 
 对于User中的fullName要求，利用正则表达式构建fullName方法，写在MyUserService类中，添加public static关键字供全局调用
+
+关于searchCourse的思路：
+首先，考虑到之后需要列出并过滤冲突课程列表，所以先把学生已经选了的课选出，并将已选section的course_id存入一个Hashset，
+把已选class的{周、日、时间段}建立一个新的Schedule类对象并存入另一个Hashset。需要注意的是，这里重写了Schedule类的
+equals方法，认为只要两个schedule的周、日相同且时间段有冲突，则为相同的Schedule。
+由于在sql中对除了weeknum的值使用了group by，故最后的返回表中只会有一个单独的class。
+之后仅需判断选中课程是否与这两个set里的元素冲突即可
+
+接下来，考虑搜索课程的过程，对于简单参数仅需进行等于或like条件判定即可，对于locations，使用了`Any()`方法。
+对于courseType，考虑根据传入的参数使用不同的sql语句进行查询。
+ALL：不关联
+MAJOR_COMPULSORY：student_major_id = course_major_id, type = comp
+MAJOR_ELECTIVE：=, type = elective
+CROSS_MAJOR：<>
+PUBLIC：关联，course_id <> major_course_id
+
+接下来，关于四个ignore标签的实现，只需在其为true的时候进行对应条件的判断，当条件符合要求时再往答案list里添加即可
+
+关于page
