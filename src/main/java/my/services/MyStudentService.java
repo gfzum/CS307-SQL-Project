@@ -85,12 +85,12 @@ public class MyStudentService implements StudentService {
             String sql_basic_select =
                     "select co.course_id, co.course_name, co.credit, co.class_hour, co.grading ,\n" +
                     "       cs.section_id, cs.section_name, cs.total_capacity, cs.left_capacity,\n" +
-                    "       cl.classid, cl.instructor_id, i.first_name, i.last_name,\n" +
-                    "       cl.day_of_week, cl.week_num, cl.class_begin, cl.class_end, cl.location" +
+                    "       cl.class_id, cl.instructor_id, i.first_name, i.last_name,\n" +
+                    "       cl.day_of_week, cl.week_num, cl.class_begin, cl.class_end, cl.location\n" +
                     "from course co\n" +
                     "    join course_section cs on co.course_id = cs.course_id\n" +
-                    "    join classes cl on cs.section_id = cl.section_id"+
-                    "    join instructor i on cl.instructor_id = i.instructor_id";
+                    "    join classes cl on cs.section_id = cl.section_id\n"+
+                    "    join instructor i on cl.instructor_id = i.instructor_id\n";
 
             String sql_basic_where =
                     "and (cs.course_id like ('%'||?||'%') or ? is null)\n" +
@@ -100,18 +100,18 @@ public class MyStudentService implements StudentService {
                     "    or (i.first_name || ' ' || i.last_name) like (?||'%') or ? is null)\n" +
                     "and (cl.day_of_week = ? or ? is null)\n" +
                     "and (? between cl.class_begin and cl.class_end or ? is null)\n" +
-                    "and (cl.location = Any (?) or ? is null)" +
+                    "and (cl.location = Any (?) or ? is null)\n" +
                     "group by co.course_id, co.course_name, co.credit, co.class_hour, co.grading ,\n" +
                     "       cs.section_id, cs.section_name, cs.total_capacity, cs.left_capacity,\n" +
-                    "       cl.classid, cl.instructor_id, i.first_name, i.last_name,\n" +
-                    "       cl.day_of_week, cl.class_begin, cl.class_end, cl.location";
+                    "       cl.class_id, cl.instructor_id, i.first_name, i.last_name,\n" +
+                    "       cl.day_of_week, cl.week_num, cl.class_begin, cl.class_end, cl.location\n";
 
             String sql;
 
             switch (searchCourseType){
                 case ALL:
                     sql = sql_basic_select +
-                        "where semester_id = ?"
+                        "where semester_id = ?\n"
                         + sql_basic_where;
 
                     PreparedStatement st = connection.prepareStatement(sql);
@@ -146,8 +146,8 @@ public class MyStudentService implements StudentService {
                         st.setNull(16, Types.ARRAY);
                     }
                     else{
-                        st.setArray(15,connection.createArrayOf("Integer",searchClassLocations.toArray()));
-                        st.setArray(16,connection.createArrayOf("Integer",searchClassLocations.toArray()));
+                        st.setArray(15,connection.createArrayOf("INTEGER",searchClassLocations.toArray()));
+                        st.setArray(16,connection.createArrayOf("INTEGER",searchClassLocations.toArray()));
                     }
 
                     ResultSet rs = st.executeQuery();
@@ -311,19 +311,19 @@ public class MyStudentService implements StudentService {
 
                 case MAJOR_COMPULSORY:
                     throw new UnsupportedOperationException();
-                    break;
+                    //break;
 
                 case MAJOR_ELECTIVE:
                     throw new UnsupportedOperationException();
-                    break;
+                    //break;
 
                 case CROSS_MAJOR:
                     throw new UnsupportedOperationException();
-                    break;
+                    //break;
 
                 case PUBLIC:
                     throw new UnsupportedOperationException();
-                    break;
+                    //break;
             }
             return result;
 
@@ -331,7 +331,7 @@ public class MyStudentService implements StudentService {
             e.printStackTrace();
             throw new EntityNotFoundException();
         }
-        return List.of();
+        //return List.of();
     }
 
     private boolean isEnrolledSection (int studentId, int sectionId) {
