@@ -365,10 +365,8 @@ public class MyStudentService implements StudentService {
 
             ResultSet rsst = stmt.executeQuery();
             if (rsst.next()) {
-                connection.close();
                 return true;
             } else {
-                connection.close();
                 return false;
             }
         } catch (SQLException e) {
@@ -453,10 +451,8 @@ public class MyStudentService implements StudentService {
             ResultSet rsst = stmt.executeQuery();
 
             if (rsst.next()) {
-                connection.close();
                 return true;
             } else {
-                connection.close();
                 return false;
             }
         } catch (SQLException e) {
@@ -474,7 +470,6 @@ public class MyStudentService implements StudentService {
             stmt.setInt(1, sectionId);
 
             ResultSet rsst = stmt.executeQuery();
-            connection.close();
             if (rsst.next()) {
                 if (rsst.getInt(1) >= 1)
                     return true;
@@ -535,6 +530,7 @@ public class MyStudentService implements StudentService {
             stmt.setInt(1, sectionId);
             stmt.executeUpdate();
             //System.out.println("SUCCESS");
+
             connection.close();
             return EnrollResult.SUCCESS;
         } catch (SQLException e) {
@@ -591,7 +587,7 @@ public class MyStudentService implements StudentService {
             stmt.setInt(1, sectionId);
 
             ResultSet rsst = stmt.executeQuery();
-            connection.close();
+            //connection.close();
             if (rsst.next()) {
                 String ret = rsst.getString(1);
                 return (ret.equals("PASS_OR_FAIL")) ? 0 : 1;
