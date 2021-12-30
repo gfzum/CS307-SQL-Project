@@ -19,7 +19,7 @@ MyUserService 中的 removeUser 与 getUser方法，UserId应该同时面向stud
 首先，考虑到之后需要列出并过滤冲突课程列表，所以先把学生已经选了的课选出，并将已选section的course_id存入一个Hashset，
 把已选class的{周、日、时间段}建立一个新的Schedule类对象并存入另一个Hashset。需要注意的是，这里重写了Schedule类的
 equals方法，认为只要两个schedule的周、日相同且时间段有冲突，则为相同的Schedule。
-由于在sql中对除了weeknum的值使用了group by，故最后的返回表中只会有一个单独的class。
+由于在sql使用了group by，故最后的返回表中只会有一个单独的class。
 之后仅需判断选中课程是否与这两个set里的元素冲突即可
 
 接下来，考虑搜索课程的过程，对于简单参数仅需进行等于或like条件判定即可，对于locations，使用了`Any()`方法。
