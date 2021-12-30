@@ -386,9 +386,10 @@ public class MyStudentService implements StudentService {
             ResultSet rsst = stmt.executeQuery();
 
             while(rsst.next()){
-                if(rsst.getInt(1) >= 60 )
+                if(rsst.getInt(1) >= 60 ) {
                     connection.close();
-                return true;
+                    return true;
+                }
             }
             connection.close();
             return false;
