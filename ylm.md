@@ -36,3 +36,21 @@ COURSE_CONFLICT其实是比较复杂的，sql语句也比较长。后来发现�
 AddCourseGrade被手动添加进来，结果这个学期选的课也可以有grade！！
 最后把判断语句改成了semester相等就通过了所有测试点。
 
+然后开始进行优化：
+1.测试autocommit(false)
+    结果发现关闭autocommit然后手动commit的话反而还更慢。
+
+autocommit（original）：
+
+    Import student courses time: 20.47s
+    Test drop course time: 5.40s
+    Test enroll course 2 time: 1.03s
+
+关闭autocommit：
+
+    Import student courses time: 25.11s
+    Test drop course time: 10.04s
+    Test enroll course 2 time: 1.10s
+
+
+

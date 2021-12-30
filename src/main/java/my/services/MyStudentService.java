@@ -622,6 +622,8 @@ public class MyStudentService implements StudentService {
                 if (sectionGradeType != 1) throw new IntegrityViolationException();
         }
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
+
+
              PreparedStatement stmt = connection.prepareStatement(
                      "insert into student_selections (grade, student_id, section_id) values (?,?,?)")) {
 
@@ -638,6 +640,7 @@ public class MyStudentService implements StudentService {
                 connection.close();
                 throw new IntegrityViolationException();
             }
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
