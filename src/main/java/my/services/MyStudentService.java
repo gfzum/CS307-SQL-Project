@@ -56,13 +56,13 @@ public class MyStudentService implements StudentService {
 
             //已选课程
             String sql_student_selections =
-                "select co.course_id,\n" +
-                "       cl.day_of_week, cl.week_num, cl.class_begin, cl.class_end\n" +
-                "from course co\n" +
-                "    join course_section cs on co.course_id = cs.course_id\n" +
-                "    join classes cl on cs.section_id = cl.section_id\n" +
-                "    join student_selections ss on cs.section_id = ss.section_id\n" +
-                "where ss.student_id = ?";
+                    "select co.course_id,\n" +
+                            "       cl.day_of_week, cl.week_num, cl.class_begin, cl.class_end\n" +
+                            "from course co\n" +
+                            "    join course_section cs on co.course_id = cs.course_id\n" +
+                            "    join classes cl on cs.section_id = cl.section_id\n" +
+                            "    join student_selections ss on cs.section_id = ss.section_id\n" +
+                            "where ss.student_id = ?";
 
             PreparedStatement st_select = connection.prepareStatement(sql_student_selections);
             st_select.setInt(1,studentId);
@@ -85,33 +85,33 @@ public class MyStudentService implements StudentService {
             //查找课程
             String sql_basic_select =
                     "select distinct " +
-                    "       co.course_id, co.course_name, co.credit, co.class_hour, co.grading ,\n" +
-                    "       cs.section_id, cs.section_name, cs.total_capacity, cs.left_capacity,\n" +
-                    "       cl.class_id, cl.instructor_id, i.first_name, i.last_name,\n" +
-                    "       cl.day_of_week, cl.week_num, cl.class_begin, cl.class_end, cl.location\n" +
-                    "from course co\n" +
-                    "    join course_section cs on co.course_id = cs.course_id\n" +
-                    "    join classes cl on cs.section_id = cl.section_id\n"+
-                    "    join instructor i on cl.instructor_id = i.instructor_id\n";
+                            "       co.course_id, co.course_name, co.credit, co.class_hour, co.grading ,\n" +
+                            "       cs.section_id, cs.section_name, cs.total_capacity, cs.left_capacity,\n" +
+                            "       cl.class_id, cl.instructor_id, i.first_name, i.last_name,\n" +
+                            "       cl.day_of_week, cl.week_num, cl.class_begin, cl.class_end, cl.location\n" +
+                            "from course co\n" +
+                            "    join course_section cs on co.course_id = cs.course_id\n" +
+                            "    join classes cl on cs.section_id = cl.section_id\n"+
+                            "    join instructor i on cl.instructor_id = i.instructor_id\n";
 
             String sql_basic_where =
                     "and (cs.course_id like ('%'|| ? ||'%') or ? is null)\n" +
-                    "and (co.course_name || '[' || cs.section_name || ']' like ('%'|| ? ||'%') or ? is null)\n" +
-                    "and (i.first_name like (? ||'%') or i.last_name like (? ||'%')\n" +
-                    "    or (i.first_name || i.last_name) like (? ||'%')\n" +
-                    "    or (i.first_name || ' ' || i.last_name) like (? ||'%') or ? is null)\n" +
-                    "and (cl.day_of_week = ? or ? is null)\n" +
-                    "and (? between cl.class_begin and cl.class_end or ? is null)\n" +
-                    "and (cl.location = Any (?) or ? is null)\n" +
-                    "order by co.course_id, co.course_name, cs.section_name";
+                            "and (co.course_name || '[' || cs.section_name || ']' like ('%'|| ? ||'%') or ? is null)\n" +
+                            "and (i.first_name like (? ||'%') or i.last_name like (? ||'%')\n" +
+                            "    or (i.first_name || i.last_name) like (? ||'%')\n" +
+                            "    or (i.first_name || ' ' || i.last_name) like (? ||'%') or ? is null)\n" +
+                            "and (cl.day_of_week = ? or ? is null)\n" +
+                            "and (? between cl.class_begin and cl.class_end or ? is null)\n" +
+                            "and (cl.location = Any (?) or ? is null)\n" +
+                            "order by co.course_id, co.course_name, cs.section_name";
 
             String sql;
 
             switch (searchCourseType){
                 case ALL:
                     sql = sql_basic_select +
-                        "where semester_id = ?\n"
-                        + sql_basic_where;
+                            "where semester_id = ?\n"
+                            + sql_basic_where;
 
                     PreparedStatement st = connection.prepareStatement(sql);
                     st.setInt(1,semesterId);
@@ -192,7 +192,7 @@ public class MyStudentService implements StudentService {
 
                         //todo 有优化空间的，因为又调用了一个sql
                         if (ignorePassed)
-                            if (havePassedCourse(studentId,course.id,connection)) continue;
+                            if (havePassedCourse(studentId,course.id)) continue;
                         if (ignoreMissingPrerequisites)
                             if (passedPrerequisitesForCourse(studentId,course.id)) continue;
 
@@ -237,7 +237,7 @@ public class MyStudentService implements StudentService {
                                 conflict.add(String.format("%s[%s]", confTime.getString(1),confTime.getString(2)));
 
                             //由于该section的另一个class可能不time_conflict，故只要有一个conf了result中就不加入。
-                            if (ignoreConflict) timeConflict = true; 
+                            if (ignoreConflict) timeConflict = true;
                         }
 
                         PreparedStatement week_st = connection.prepareStatement("" +
@@ -246,7 +246,7 @@ public class MyStudentService implements StudentService {
                         ResultSet week_rs = week_st.executeQuery();
                         while(week_rs.next())
                             lesson.weekList.add(week_rs.getShort(1));
-                        
+
                         classes.add(lesson);
 
                         //todo 找其他class，现在在原sql语句中加入group by，并在这里再用一个sql查找，可以有优化空间
@@ -256,58 +256,58 @@ public class MyStudentService implements StudentService {
                                 if (rs.getString(1).equals(course.id) && rs.getInt(6) == section.id){
                                     //已经有冲突时间的话就不做后续查询了
                                     if (!timeConflict){
-                                    CourseSectionClass new_temp_class = new CourseSectionClass();
-                                    new_temp_class.id = rs.getInt(10);
-                                    Instructor ins_temp = new Instructor();
-                                    ins_temp.id = rs.getInt(11);
-                                    ins_temp.fullName = MyUserService.getFullName(rs.getString(12),rs.getString(13));
-                                    new_temp_class.instructor = ins_temp;
-                                    new_temp_class.dayOfWeek = DayOfWeek.of(rs.getInt(14));
-                                    
-                                    new_temp_class.classBegin = rs.getShort(16);
-                                    new_temp_class.classEnd = rs.getShort(17);
-                                    new_temp_class.location = rs.getString(18);
+                                        CourseSectionClass new_temp_class = new CourseSectionClass();
+                                        new_temp_class.id = rs.getInt(10);
+                                        Instructor ins_temp = new Instructor();
+                                        ins_temp.id = rs.getInt(11);
+                                        ins_temp.fullName = MyUserService.getFullName(rs.getString(12),rs.getString(13));
+                                        new_temp_class.instructor = ins_temp;
+                                        new_temp_class.dayOfWeek = DayOfWeek.of(rs.getInt(14));
 
-                                    //time conflict
-                                    Schedule temp_time = new Schedule(
-                                            rs.getInt(15),new_temp_class.dayOfWeek,new_temp_class.classBegin,new_temp_class.classEnd);
-                                    if (schedule_enrolled.contains(temp_time)){
-                                        PreparedStatement findConfTime = connection.prepareStatement("" +
-                                                "select course_name, section_name from course_section\n" +
-                                                "    join student_selections ss on course_section.section_id = ss.section_id\n" +
-                                                "    join classes cl on course_section.section_id = cl.section_id\n" +
-                                                "    join course co on course_section.course_id = co.course_id\n" +
-                                                "where student_id = ? and cl.week_num = ? and cl.day_of_week = ?\n" +
-                                                "    and ((cl.class_begin <= ? and cl.class_end >= ?) " +
-                                                "       or (cl.class_begin >= ? and cl.class_begin <= ?)\n" +
-                                                "       or(cl.class_end >=? and cl.class_end <= ?))");
-                                        findConfTime.setInt(1,studentId);
-                                        findConfTime.setInt(2, rs.getInt(15));
-                                        findConfTime.setInt(3, rs.getInt(14));
-                                        findConfTime.setInt(4,lesson.classBegin);
-                                        findConfTime.setInt(5,lesson.classEnd);
-                                        findConfTime.setInt(6,lesson.classBegin);
-                                        findConfTime.setInt(7,lesson.classEnd);
-                                        findConfTime.setInt(8,lesson.classBegin);
-                                        findConfTime.setInt(9,lesson.classEnd);
-                                        ResultSet confTime = findConfTime.executeQuery();
-                                        if (confTime.next())
-                                            conflict.add(String.format("%s[%s]", confTime.getString(1),confTime.getString(2)));
-                                        
-                                        if (ignoreConflict) {
-                                            timeConflict = true;
-                                            continue;
+                                        new_temp_class.classBegin = rs.getShort(16);
+                                        new_temp_class.classEnd = rs.getShort(17);
+                                        new_temp_class.location = rs.getString(18);
+
+                                        //time conflict
+                                        Schedule temp_time = new Schedule(
+                                                rs.getInt(15),new_temp_class.dayOfWeek,new_temp_class.classBegin,new_temp_class.classEnd);
+                                        if (schedule_enrolled.contains(temp_time)){
+                                            PreparedStatement findConfTime = connection.prepareStatement("" +
+                                                    "select course_name, section_name from course_section\n" +
+                                                    "    join student_selections ss on course_section.section_id = ss.section_id\n" +
+                                                    "    join classes cl on course_section.section_id = cl.section_id\n" +
+                                                    "    join course co on course_section.course_id = co.course_id\n" +
+                                                    "where student_id = ? and cl.week_num = ? and cl.day_of_week = ?\n" +
+                                                    "    and ((cl.class_begin <= ? and cl.class_end >= ?) " +
+                                                    "       or (cl.class_begin >= ? and cl.class_begin <= ?)\n" +
+                                                    "       or(cl.class_end >=? and cl.class_end <= ?))");
+                                            findConfTime.setInt(1,studentId);
+                                            findConfTime.setInt(2, rs.getInt(15));
+                                            findConfTime.setInt(3, rs.getInt(14));
+                                            findConfTime.setInt(4,lesson.classBegin);
+                                            findConfTime.setInt(5,lesson.classEnd);
+                                            findConfTime.setInt(6,lesson.classBegin);
+                                            findConfTime.setInt(7,lesson.classEnd);
+                                            findConfTime.setInt(8,lesson.classBegin);
+                                            findConfTime.setInt(9,lesson.classEnd);
+                                            ResultSet confTime = findConfTime.executeQuery();
+                                            if (confTime.next())
+                                                conflict.add(String.format("%s[%s]", confTime.getString(1),confTime.getString(2)));
+
+                                            if (ignoreConflict) {
+                                                timeConflict = true;
+                                                continue;
+                                            }
                                         }
-                                    }
-                                    
-                                    PreparedStatement temp_st = connection.prepareStatement("" +
-                                            "select week_num from classes where class_id = ?");
-                                    temp_st.setInt(1,rs.getInt(10));
-                                    ResultSet temp_rs = temp_st.executeQuery();
-                                    while(temp_rs.next())
-                                        new_temp_class.weekList.add(temp_rs.getShort(1));
 
-                                    classes.add(new_temp_class);
+                                        PreparedStatement temp_st = connection.prepareStatement("" +
+                                                "select week_num from classes where class_id = ?");
+                                        temp_st.setInt(1,rs.getInt(10));
+                                        ResultSet temp_rs = temp_st.executeQuery();
+                                        while(temp_rs.next())
+                                            new_temp_class.weekList.add(temp_rs.getShort(1));
+
+                                        classes.add(new_temp_class);
                                     }
                                 }
                                 //找完class了
@@ -317,7 +317,7 @@ public class MyStudentService implements StudentService {
                                 }
                             }else break;
                         }
-                        
+
                         if (timeConflict) continue;
                         cse.course = course;
                         cse.section = section;
@@ -374,8 +374,8 @@ public class MyStudentService implements StudentService {
         }
     }
 
-    private boolean havePassedCourse(int studentId, String courseId, Connection connection) {
-        try (//Connection connection = SQLDataSource.getInstance().getSQLConnection();
+    private boolean havePassedCourse(int studentId, String courseId) {
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
                      "select grade from student_selections\n" +
                              "join course_section cs on cs.section_id = student_selections.section_id\n" +
@@ -387,10 +387,10 @@ public class MyStudentService implements StudentService {
 
             while(rsst.next()){
                 if(rsst.getInt(1) >= 60 )
-                    //connection.close();
-                    return true;
+                    connection.close();
+                return true;
             }
-            //connection.close();
+            connection.close();
             return false;
 
         } catch (SQLException e) {
@@ -404,43 +404,43 @@ public class MyStudentService implements StudentService {
 
         try (//Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
-             "select conf.course_id, conf.section_id from\n" +
-                     "\n" +
-                     "(select * from course_section\n" +
-                     "join classes c on course_section.section_id = c.section_id\n" +
-                     "where c.section_id = ?) as now\n" +
-                     "\n" +
-                     "\n" +
-                     "join\n" +
-                     "        (select cls.*, cs.semester_id, cs.course_id from classes cls\n" +
-                     "        join course_section cs on cls.section_id = cs.section_id) as conf\n" +
-                     "\n" +
-                     "on ((conf.class_begin<=now.class_begin and conf.class_end>=now.class_end)\n" +
-                     "            or(conf.class_begin>=now.class_begin and conf.class_end<=now.class_end)\n" +
-                     "            or(conf.class_begin>=now.class_begin and conf.class_begin<=now.class_end)\n" +
-                     "            or(conf.class_end>=now.class_begin and conf.class_end<=now.class_end))\n" +
-                     "        and conf.day_of_week = now.day_of_week\n" +
-                     "        and conf.week_num = now.week_num\n" +
-                     "        and conf.semester_id = now.semester_id\n" +
-                     "\n" +
-                     "join\n" +
-                     "\n" +
-                     "(select cs.section_id, semester_id from student_selections ss\n" +
-                     "join course_section cs on ss.section_id = cs.section_id\n" +
-                     "where ss.student_id = ? ) as stu\n" +
-                     "on stu.section_id = conf.section_id and now.semester_id = conf.semester_id\n" +
-                     "\n" +
-                     "union\n" +
-                     "\n" +
-                     "select cs.course_id, section_id from (\n" +
-                     "                  select semester_id, c.course_id from student_selections ss\n" +
-                     "                           join course_section cs on ss.section_id = cs.section_id\n" +
-                     "                           join course c on c.course_id = cs.course_id\n" +
-                     "                  where student_id = ?\n" +
-                     "              ) as now\n" +
-                     "join course cou on cou.course_id = now.course_id\n" +
-                     "join course_section cs on cou.course_id = cs.course_id\n" +
-                     "where cs.semester_id = now.semester_id and cs.section_id = ?")) {
+                     "select conf.course_id, conf.section_id from\n" +
+                             "\n" +
+                             "(select * from course_section\n" +
+                             "join classes c on course_section.section_id = c.section_id\n" +
+                             "where c.section_id = ?) as now\n" +
+                             "\n" +
+                             "\n" +
+                             "join\n" +
+                             "        (select cls.*, cs.semester_id, cs.course_id from classes cls\n" +
+                             "        join course_section cs on cls.section_id = cs.section_id) as conf\n" +
+                             "\n" +
+                             "on ((conf.class_begin<=now.class_begin and conf.class_end>=now.class_end)\n" +
+                             "            or(conf.class_begin>=now.class_begin and conf.class_end<=now.class_end)\n" +
+                             "            or(conf.class_begin>=now.class_begin and conf.class_begin<=now.class_end)\n" +
+                             "            or(conf.class_end>=now.class_begin and conf.class_end<=now.class_end))\n" +
+                             "        and conf.day_of_week = now.day_of_week\n" +
+                             "        and conf.week_num = now.week_num\n" +
+                             "        and conf.semester_id = now.semester_id\n" +
+                             "\n" +
+                             "join\n" +
+                             "\n" +
+                             "(select cs.section_id, semester_id from student_selections ss\n" +
+                             "join course_section cs on ss.section_id = cs.section_id\n" +
+                             "where ss.student_id = ? ) as stu\n" +
+                             "on stu.section_id = conf.section_id and now.semester_id = conf.semester_id\n" +
+                             "\n" +
+                             "union\n" +
+                             "\n" +
+                             "select cs.course_id, section_id from (\n" +
+                             "                  select semester_id, c.course_id from student_selections ss\n" +
+                             "                           join course_section cs on ss.section_id = cs.section_id\n" +
+                             "                           join course c on c.course_id = cs.course_id\n" +
+                             "                  where student_id = ?\n" +
+                             "              ) as now\n" +
+                             "join course cou on cou.course_id = now.course_id\n" +
+                             "join course_section cs on cou.course_id = cs.course_id\n" +
+                             "where cs.semester_id = now.semester_id and cs.section_id = ?")) {
             stmt.setInt(1, sectionId);
             stmt.setInt(2, studentId);
             stmt.setInt(3, studentId);
@@ -500,7 +500,7 @@ public class MyStudentService implements StudentService {
                 //System.out.println("ALREADY_ENROLLED");
                 return EnrollResult.ALREADY_ENROLLED;
             }
-            if( havePassedCourse( studentId, course.id,connection) ){
+            if( havePassedCourse( studentId, course.id) ){
                 //System.out.println("ALREADY_PASSED");
                 return EnrollResult.ALREADY_PASSED;
             }
@@ -525,7 +525,7 @@ public class MyStudentService implements StudentService {
             stmt.executeUpdate();
 
             stmt = connection.prepareStatement("update course_section set left_capacity = left_capacity - 1\n " +
-                   "where section_id = ?;");
+                    "where section_id = ?;");
 
             stmt.setInt(1, sectionId);
             stmt.executeUpdate();
@@ -771,9 +771,9 @@ public class MyStudentService implements StudentService {
 
     }
 
-    private String getPrerequisiteStringByCourseId(String courseId, Connection connection) {
+    private String getPrerequisiteStringByCourseId(String courseId) {
 
-        try (//Connection connection = SQLDataSource.getInstance().getSQLConnection();
+        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
                      "select prerequisite from course\n" +
                              "where course_id = ?")) {
@@ -791,9 +791,9 @@ public class MyStudentService implements StudentService {
         return null;
     }
 
-    private boolean checkSatisfiedCondition(int studentId, String prereStr, Connection connection) {
+    private boolean checkSatisfiedCondition(int studentId, String prereStr) {
         if (!prereStr.startsWith("("))
-            return havePassedCourse(studentId, prereStr, connection);
+            return havePassedCourse(studentId, prereStr);
 
         int cnt = 1, i = 1;
         for (; i < prereStr.length(); i++) {
@@ -805,8 +805,8 @@ public class MyStudentService implements StudentService {
         if (cnt != 0)
             throw new IllegalStateException();
 
-        boolean retX = checkSatisfiedCondition(studentId, prereStr.substring(1, i), connection);
-        boolean retY = checkSatisfiedCondition(studentId, prereStr.substring(i + 3, prereStr.length() - 1), connection);
+        boolean retX = checkSatisfiedCondition(studentId, prereStr.substring(1, i));
+        boolean retY = checkSatisfiedCondition(studentId, prereStr.substring(i + 3, prereStr.length() - 1));
 
         if (prereStr.charAt(i + 1) == '&')
             return retX & retY;
@@ -818,20 +818,14 @@ public class MyStudentService implements StudentService {
     }
 
     @Override
-    public boolean passedPrerequisitesForCourse(int studentId, String courseId) {//todo：这里加了一个new connection，但是没有意义，因为上一层已经有了，这里又重复了;而且由于是接口中的方法，没法加参数
-        Connection connection = null;
-        try {
-            connection = SQLDataSource.getInstance().getSQLConnection();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        String prereStr = getPrerequisiteStringByCourseId(courseId, connection);
+    public boolean passedPrerequisitesForCourse(int studentId, String courseId) {
+        String prereStr = getPrerequisiteStringByCourseId(courseId);
         if (prereStr.equals(""))
             return true;
         prereStr = prereStr.substring(1, prereStr.length() - 1);
-        if (checkSatisfiedCondition(studentId, prereStr, connection))
+        if (checkSatisfiedCondition(studentId, prereStr))
             return true;
-        else return false;//sbljr
+        else return false;
     }
 
     @Override
@@ -886,8 +880,8 @@ class Schedule{
 
         boolean time_conflict = false;
         if (Schedule.begin_time <= this.begin_time && Schedule.end_time >= this.end_time ||
-            Schedule.begin_time >= this.begin_time && Schedule.end_time <= this.end_time ||
-            Schedule.end_time >= this.begin_time && Schedule.end_time <= this.end_time)
+                Schedule.begin_time >= this.begin_time && Schedule.end_time <= this.end_time ||
+                Schedule.end_time >= this.begin_time && Schedule.end_time <= this.end_time)
             time_conflict = true;
 
         return week_num == Schedule.week_num &&
