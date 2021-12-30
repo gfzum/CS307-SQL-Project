@@ -652,7 +652,6 @@ public class MyStudentService implements StudentService {
 
             int ret = stmt.executeUpdate();
             if (ret <= 0) throw new IntegrityViolationException();
-            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
