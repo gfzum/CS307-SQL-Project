@@ -31,6 +31,7 @@ public class MyStudentService implements StudentService {
             stmt.setDate(4, enrolledDate);
             stmt.setInt(5, majorId);
             stmt.execute();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -364,10 +365,12 @@ public class MyStudentService implements StudentService {
 
             ResultSet rsst = stmt.executeQuery();
             if (rsst.next()) {
+                connection.close();
                 return true;
-            } else
+            } else {
+                connection.close();
                 return false;
-
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             throw new IntegrityViolationException();
@@ -450,10 +453,12 @@ public class MyStudentService implements StudentService {
             ResultSet rsst = stmt.executeQuery();
 
             if (rsst.next()) {
+                connection.close();
                 return true;
-            } else
+            } else {
+                connection.close();
                 return false;
-
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             throw new IntegrityViolationException();
@@ -469,14 +474,13 @@ public class MyStudentService implements StudentService {
             stmt.setInt(1, sectionId);
 
             ResultSet rsst = stmt.executeQuery();
-
+            connection.close();
             if (rsst.next()) {
                 if (rsst.getInt(1) >= 1)
                     return true;
                 else return false;
             } else
                 throw new EntityNotFoundException();
-
         } catch (SQLException e) {
             e.printStackTrace();
             throw new IntegrityViolationException();
@@ -530,10 +534,9 @@ public class MyStudentService implements StudentService {
 
             stmt.setInt(1, sectionId);
             stmt.executeUpdate();
-
             //System.out.println("SUCCESS");
+            connection.close();
             return EnrollResult.SUCCESS;
-
         } catch (SQLException e) {
             e.printStackTrace();
             return EnrollResult.UNKNOWN_ERROR;
@@ -572,7 +575,7 @@ public class MyStudentService implements StudentService {
             if (stmt.executeUpdate() == 0) {
                 throw new IllegalStateException();
             }
-
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
             throw new IllegalStateException();
@@ -588,12 +591,12 @@ public class MyStudentService implements StudentService {
             stmt.setInt(1, sectionId);
 
             ResultSet rsst = stmt.executeQuery();
+            connection.close();
             if (rsst.next()) {
                 String ret = rsst.getString(1);
                 return (ret.equals("PASS_OR_FAIL")) ? 0 : 1;
             } else
                 throw new IntegrityViolationException();
-
         } catch (SQLException e) {
             throw new IntegrityViolationException();
         }
@@ -624,7 +627,7 @@ public class MyStudentService implements StudentService {
 
             int ret = stmt.executeUpdate();
             if (ret <= 0) throw new IntegrityViolationException();
-
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -653,7 +656,7 @@ public class MyStudentService implements StudentService {
 
             int ret = stmt.executeUpdate();
             if (ret <= 0) throw new IntegrityViolationException();
-
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -700,7 +703,7 @@ public class MyStudentService implements StudentService {
             }
 
             if (ret.isEmpty()) return Map.of(); //题目要求
-
+            connection.close();
             return ret;
 
         } catch (SQLException e) {
@@ -762,7 +765,7 @@ public class MyStudentService implements StudentService {
                 DayOfWeek day = DayOfWeek.of(rsst.getInt(9));
                 ret.table.get(day).add(entry);
             }
-
+            connection.close();
             return ret;
 
         } catch (SQLException e) {
@@ -784,6 +787,7 @@ public class MyStudentService implements StudentService {
             if (rsst.next()) {
                 return rsst.getString(1);
             } else {
+                connection.close();
                 throw new EntityNotFoundException();
             }
         } catch (SQLException e) {
@@ -848,8 +852,10 @@ public class MyStudentService implements StudentService {
                 ret.department = new Department();
                 ret.department.id = rsst.getInt(3);
                 ret.department.name = rsst.getString(4);
+                connection.close();
                 return ret;
             } else {
+                connection.close();
                 throw new EntityNotFoundException();
             }
         } catch (SQLException e) {

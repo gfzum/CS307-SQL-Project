@@ -1,3 +1,4 @@
+--create database project2 with encoding = 'UTF8' LC_COLLATE = 'C' template template0;
 create table course
 (
 	course_id varchar(20) not null
