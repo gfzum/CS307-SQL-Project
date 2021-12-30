@@ -187,7 +187,7 @@ public class MyHolyStudentService implements StudentService {
 
                             PreparedStatement week_st = connection.prepareStatement("" +
                                     "select week_num from classes where class_id = ?");
-                            week_st.setInt(1, rs_findClass.getInt(6));
+                            week_st.setInt(1, rs_findClass.getInt(1));
                             ResultSet week_rs = week_st.executeQuery();
                             lesson.weekList = new HashSet<>();
                             while (week_rs.next())
