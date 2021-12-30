@@ -50,11 +50,6 @@ public class MyStudentService implements StudentService {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection()) {
 
             List<CourseSearchEntry> result = new ArrayList<>();
-
-            //todo page是干什么吃的，不明白
-            //todo connect close？
-            //当返回的是class的时候，把所有的class的week_num拿出来放一起存到一个class里
-
             //已选课程
             String sql_student_selections =
                     "select co.course_id,\n" +
@@ -812,14 +807,12 @@ public class MyStudentService implements StudentService {
     private boolean checkSatisfiedCondition(int studentId, String prereStr) {
         if (!prereStr.startsWith("("))
             return havePassedCourse(studentId, prereStr);
-
         int cnt = 1, i = 1;
         for (; i < prereStr.length(); i++) {
             if (prereStr.charAt(i) == '(') cnt++;
             if (prereStr.charAt(i) == ')') cnt--;
             if (cnt == 0) break;
         }
-
         if (cnt != 0)
             throw new IllegalStateException();
 
@@ -832,7 +825,6 @@ public class MyStudentService implements StudentService {
             return retX | retY;
         else
             throw new IllegalStateException();
-
     }
 
     @Override

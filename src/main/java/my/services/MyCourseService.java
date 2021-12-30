@@ -343,23 +343,16 @@ public class MyCourseService implements CourseService {
                 Instructor instructor = new Instructor();
 
                 courseSectionClass.id = resultSet.getInt(1);
-
                 instructor.id = resultSet.getInt(2);
                 instructor.fullName = resultSet.getString(3);
-
                 courseSectionClass.instructor = instructor;
-
                 courseSectionClass.dayOfWeek = DayOfWeek.of(resultSet.getInt(4));
-
                 courseSectionClass.classBegin = (short) resultSet.getInt(5);
                 courseSectionClass.classEnd = (short) resultSet.getInt(6);
-
                 courseSectionClass.location = resultSet.getString(7);
-
                 Array weekList = resultSet.getArray(8);
 
                 Set<Short> week_list = new HashSet<>();
-
                 for (Object o : (Object[]) weekList.getArray()) {
                     if (o instanceof Number) {
                         try {
@@ -372,7 +365,6 @@ public class MyCourseService implements CourseService {
                         }
                     }
                 }
-
                 courseSectionClass.weekList = week_list;
                 result.add(courseSectionClass);
             }
