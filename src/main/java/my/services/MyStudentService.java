@@ -347,6 +347,7 @@ public class MyStudentService implements StudentService {
                     throw new UnsupportedOperationException();
                     //break;
             }
+            connection.close();
             return result;
 
         } catch (SQLException e) {
@@ -356,8 +357,8 @@ public class MyStudentService implements StudentService {
         //return List.of();
     }
 
-    private boolean isEnrolledSection (int studentId, int sectionId) {
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
+    private boolean isEnrolledSection (int studentId, int sectionId, Connection connection) {
+        try (//Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
                      "select student_id from student_selections\n" +
                              "where student_id = ? and section_id = ?")) {
@@ -389,8 +390,10 @@ public class MyStudentService implements StudentService {
 
             while(rsst.next()){
                 if(rsst.getInt(1) >= 60 )
+                    connection.close();
                     return true;
             }
+            connection.close();
             return false;
 
         } catch (SQLException e) {
@@ -400,9 +403,9 @@ public class MyStudentService implements StudentService {
     }
 
 
-    private boolean courseConflictFound(int studentId, int sectionId) {
+    private boolean courseConflictFound(int studentId, int sectionId, Connection connection) {
 
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
+        try (//Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
              "select conf.course_id, conf.section_id from\n" +
                      "\n" +
@@ -460,8 +463,8 @@ public class MyStudentService implements StudentService {
     }
 
 
-    private boolean checkHaveLeftCapacity(int sectionId) {
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
+    private boolean checkHaveLeftCapacity(int sectionId, Connection connection) {
+        try (//Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
                      "select left_capacity from course_section\n" +
                              "where section_id = ?")) {
@@ -496,7 +499,7 @@ public class MyStudentService implements StudentService {
                 //System.out.println("COURSE_NOT_FOUND");
                 return EnrollResult.COURSE_NOT_FOUND;
             }
-            if(isEnrolledSection( studentId, sectionId)){
+            if(isEnrolledSection( studentId, sectionId, connection)){
                 //System.out.println("ALREADY_ENROLLED");
                 return EnrollResult.ALREADY_ENROLLED;
             }
@@ -508,11 +511,11 @@ public class MyStudentService implements StudentService {
                 //System.out.println("PREREQUISITES_NOT_FULFILLED");
                 return EnrollResult.PREREQUISITES_NOT_FULFILLED;
             }
-            if( courseConflictFound( studentId, sectionId)){
+            if( courseConflictFound( studentId, sectionId, connection)){
                 //System.out.println("COURSE_CONFLICT_FOUND");
                 return EnrollResult.COURSE_CONFLICT_FOUND;
             }
-            if( !checkHaveLeftCapacity( sectionId ) ){
+            if( !checkHaveLeftCapacity( sectionId, connection ) ){
                 //System.out.println("COURSE_IS_FULL");
                 return EnrollResult.COURSE_IS_FULL;
             }
