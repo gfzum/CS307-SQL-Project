@@ -828,7 +828,7 @@ public class MyStudentService implements StudentService {
         prereStr = prereStr.substring(1, prereStr.length() - 1);
         if (checkSatisfiedCondition(studentId, prereStr))
             return true;
-        else return false;
+        else return false;//sbljr
     }
 
     @Override
