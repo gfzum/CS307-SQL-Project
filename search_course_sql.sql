@@ -21,7 +21,7 @@ join
     join student_selections ss on cs.section_id = ss.section_id
 where student_id = ? and semester_id = ?) s2 --学生选的
 on s2.course_id = s1.course_id
-or (s2.week_num = s1.week_num and s2.day_of_week = s1.week_num
+or (s2.week_num = s1.week_num and s2.day_of_week = s1.day_of_week
     and (  (s2.class_begin <= s1.class_begin and s2.class_end >= s1.class_end)
         or (s2.class_begin >= s1.class_begin and s2.class_begin <= s1.class_end)
         or (s2.class_end >= s1.class_begin and s2.class_end <= s1.class_end)))
@@ -154,7 +154,7 @@ where student_id = ? and cl.week_num = ? and cl.day_of_week = ?
 
 
 --t
-select distinct        co.course_id, co.course_name, co.credit, co.class_hour, co.grading ,
+select distinct co.course_id, co.course_name, co.credit, co.class_hour, co.grading ,
        cs.section_id, cs.section_name, cs.total_capacity, cs.left_capacity,
        cl.class_id, cl.instructor_id, i.first_name, i.last_name,
        cl.day_of_week, cl.week_num, cl.class_begin, cl.class_end, cl.location

@@ -126,7 +126,7 @@ public class MyHolyStudentService implements StudentService {
                     }
 
                     ResultSet rs = st.executeQuery();
-
+                    int cnt = 0;
                     //每一个循环添加一个courseEntry
                     while(rs.next()){
                         CourseSearchEntry cse = new CourseSearchEntry();
@@ -181,7 +181,7 @@ public class MyHolyStudentService implements StudentService {
 
                         classes.add(lesson);
 
-                        // conflict judge 一下就能找出courseConflict和所有class的timeConflict，太优雅辣！
+                        // conflict judge 一下就能找出courseConflict和所有class的timeConflict，太优雅了！
                         PreparedStatement st_conf = connection.prepareStatement(
                         "select course_name || '[' || section_name || ']' from(\n" +
                                 "select distinct s2.course_name, s2.section_name\n" +
@@ -261,7 +261,7 @@ public class MyHolyStudentService implements StudentService {
                         cse.section = section;
                         cse.sectionClasses = classes;
                         cse.conflictCourseNames = conflict;
-
+                        
                         result.add(cse);
                     }
                     break;
@@ -280,7 +280,16 @@ public class MyHolyStudentService implements StudentService {
                     //break;
             }
             connection.close();
-            return result;
+            
+            List<CourseSearchEntry> finalResult = new ArrayList<>();
+            int cnt = 0;
+            for (int i = pageIndex * pageSize; i < result.size(); i++) {
+                finalResult.add(result.get(i));
+                cnt++;
+                if (cnt == pageSize) break;
+            }
+            
+            return finalResult;
 
         } catch (SQLException e) {
             e.printStackTrace();
