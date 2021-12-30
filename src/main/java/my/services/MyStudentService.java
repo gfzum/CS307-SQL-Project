@@ -192,7 +192,7 @@ public class MyStudentService implements StudentService {
 
                         //todo 有优化空间的，因为又调用了一个sql
                         if (ignorePassed)
-                            if (havePassedCourse(studentId,course.id)) continue;
+                            if (havePassedCourse(studentId,course.id,connection)) continue;
                         if (ignoreMissingPrerequisites)
                             if (passedPrerequisitesForCourse(studentId,course.id)) continue;
 
@@ -374,8 +374,8 @@ public class MyStudentService implements StudentService {
         }
     }
 
-    private boolean havePassedCourse(int studentId, String courseId) {
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
+    private boolean havePassedCourse(int studentId, String courseId, Connection connection) {
+        try (//Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
                      "select grade from student_selections\n" +
                              "join course_section cs on cs.section_id = student_selections.section_id\n" +
@@ -387,10 +387,10 @@ public class MyStudentService implements StudentService {
 
             while(rsst.next()){
                 if(rsst.getInt(1) >= 60 )
-                    connection.close();
+                    //connection.close();
                     return true;
             }
-            connection.close();
+            //connection.close();
             return false;
 
         } catch (SQLException e) {
@@ -500,7 +500,7 @@ public class MyStudentService implements StudentService {
                 //System.out.println("ALREADY_ENROLLED");
                 return EnrollResult.ALREADY_ENROLLED;
             }
-            if( havePassedCourse( studentId, course.id) ){
+            if( havePassedCourse( studentId, course.id,connection) ){
                 //System.out.println("ALREADY_PASSED");
                 return EnrollResult.ALREADY_PASSED;
             }
@@ -771,9 +771,9 @@ public class MyStudentService implements StudentService {
 
     }
 
-    private String getPrerequisiteStringByCourseId(String courseId) {
+    private String getPrerequisiteStringByCourseId(String courseId, Connection connection) {
 
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
+        try (//Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
                      "select prerequisite from course\n" +
                              "where course_id = ?")) {
@@ -791,9 +791,9 @@ public class MyStudentService implements StudentService {
         return null;
     }
 
-    private boolean checkSatisfiedCondition(int studentId, String prereStr) {
+    private boolean checkSatisfiedCondition(int studentId, String prereStr, Connection connection) {
         if (!prereStr.startsWith("("))
-            return havePassedCourse(studentId, prereStr);
+            return havePassedCourse(studentId, prereStr, connection);
 
         int cnt = 1, i = 1;
         for (; i < prereStr.length(); i++) {
@@ -805,8 +805,8 @@ public class MyStudentService implements StudentService {
         if (cnt != 0)
             throw new IllegalStateException();
 
-        boolean retX = checkSatisfiedCondition(studentId, prereStr.substring(1, i));
-        boolean retY = checkSatisfiedCondition(studentId, prereStr.substring(i + 3, prereStr.length() - 1));
+        boolean retX = checkSatisfiedCondition(studentId, prereStr.substring(1, i), connection);
+        boolean retY = checkSatisfiedCondition(studentId, prereStr.substring(i + 3, prereStr.length() - 1), connection);
 
         if (prereStr.charAt(i + 1) == '&')
             return retX & retY;
@@ -818,12 +818,18 @@ public class MyStudentService implements StudentService {
     }
 
     @Override
-    public boolean passedPrerequisitesForCourse(int studentId, String courseId) {
-        String prereStr = getPrerequisiteStringByCourseId(courseId);
+    public boolean passedPrerequisitesForCourse(int studentId, String courseId) {//todo：这里加了一个new connection，但是没有意义，因为上一层已经有了，这里又重复了;而且由于是接口中的方法，没法加参数
+        Connection connection = null;
+        try {
+            connection = SQLDataSource.getInstance().getSQLConnection();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        String prereStr = getPrerequisiteStringByCourseId(courseId, connection);
         if (prereStr.equals(""))
             return true;
         prereStr = prereStr.substring(1, prereStr.length() - 1);
-        if (checkSatisfiedCondition(studentId, prereStr))
+        if (checkSatisfiedCondition(studentId, prereStr, connection))
             return true;
         else return false;
     }
