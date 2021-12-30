@@ -508,6 +508,12 @@ public class MyHolyStudentService implements StudentService {
                 connection.close();
                 throw new IllegalStateException();
             }
+
+            stmt = connection.prepareStatement("update course_section set left_capacity = left_capacity + 1\n " +
+                    "where section_id = ?;");
+
+            stmt.setInt(1, sectionId);
+            stmt.executeUpdate();
             connection.close();
         } catch (SQLException e) {
             e.printStackTrace();

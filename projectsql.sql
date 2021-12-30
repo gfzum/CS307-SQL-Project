@@ -11,6 +11,9 @@ create table course
 	prerequisite varchar(500)
 );
 
+create unique index course_course_id_uindex
+    on course (course_id);
+
 create table semester
 (
 	semester_id serial not null
