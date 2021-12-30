@@ -170,5 +170,5 @@ and (i.first_name like (? ||'%') or i.last_name like (? ||'%')
     or (i.first_name || ' ' || i.last_name) like (? ||'%') or ? is null)
 and (cl.day_of_week = ? or ? is null)
 and (? between cl.class_begin and cl.class_end or ? is null)
-and (cl.location = Any (?) or ? is null)
+and (cl.location like (Any (?) || '%') or ? is null)
 order by co.course_id, co.course_name, cs.section_name

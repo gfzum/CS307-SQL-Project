@@ -119,7 +119,9 @@ public class MyHolyStudentService implements StudentService {
                         st.setNull(16, Types.VARCHAR);
                     }
                     else{
-                        st.setArray(15,connection.createArrayOf("varchar",searchClassLocations.toArray()));
+                        List<String> newLocation = new ArrayList<>();
+                        for (String s : searchClassLocations)  newLocation.add(s + "%");
+                        st.setArray(15,connection.createArrayOf("varchar",newLocation.toArray()));
                         st.setString(16,"notNull"); //非空不影响
                     }
 
