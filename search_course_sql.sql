@@ -1,3 +1,5 @@
+CREATE DATABASE project2 WITH ENCODING='UTF8' LC_COLLATE = 'C';
+
 --选出该学生已经选好的课
 select co.course_id,
        cl.day_of_week, cl.week_num, cl.class_begin, cl.class_end
