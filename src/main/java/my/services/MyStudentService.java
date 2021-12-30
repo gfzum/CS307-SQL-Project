@@ -494,26 +494,32 @@ public class MyStudentService implements StudentService {
                 course = mcs.getCourseBySection(sectionId);
             } catch (EntityNotFoundException e){
                 //System.out.println("COURSE_NOT_FOUND");
+                connection.close();
                 return EnrollResult.COURSE_NOT_FOUND;
             }
             if(isEnrolledSection( studentId, sectionId, connection)){
                 //System.out.println("ALREADY_ENROLLED");
+                connection.close();
                 return EnrollResult.ALREADY_ENROLLED;
             }
             if( havePassedCourse( studentId, course.id) ){
                 //System.out.println("ALREADY_PASSED");
+                connection.close();
                 return EnrollResult.ALREADY_PASSED;
             }
             if( !passedPrerequisitesForCourse( studentId, course.id)){
                 //System.out.println("PREREQUISITES_NOT_FULFILLED");
+                connection.close();
                 return EnrollResult.PREREQUISITES_NOT_FULFILLED;
             }
             if( courseConflictFound( studentId, sectionId, connection)){
                 //System.out.println("COURSE_CONFLICT_FOUND");
+                connection.close();
                 return EnrollResult.COURSE_CONFLICT_FOUND;
             }
             if( !checkHaveLeftCapacity( sectionId, connection ) ){
                 //System.out.println("COURSE_IS_FULL");
+                connection.close();
                 return EnrollResult.COURSE_IS_FULL;
             }
 
@@ -556,9 +562,11 @@ public class MyStudentService implements StudentService {
 
             if (rsst.next()) {
                 if (rsst.getString(1) != null) {
+                    connection.close();
                     throw new IllegalStateException();
                 }
             } else {
+                connection.close();
                 throw new IllegalStateException();
             }
 
@@ -569,6 +577,7 @@ public class MyStudentService implements StudentService {
             stmt.setInt(2, sectionId);
 
             if (stmt.executeUpdate() == 0) {
+                connection.close();
                 throw new IllegalStateException();
             }
             connection.close();
@@ -590,9 +599,12 @@ public class MyStudentService implements StudentService {
             //connection.close();
             if (rsst.next()) {
                 String ret = rsst.getString(1);
+                connection.close();
                 return (ret.equals("PASS_OR_FAIL")) ? 0 : 1;
-            } else
+            } else {
+                connection.close();
                 throw new IntegrityViolationException();
+            }
         } catch (SQLException e) {
             throw new IntegrityViolationException();
         }
@@ -622,8 +634,10 @@ public class MyStudentService implements StudentService {
             stmt.setInt(3, sectionId);
 
             int ret = stmt.executeUpdate();
-            if (ret <= 0) throw new IntegrityViolationException();
-            connection.close();
+            if (ret <= 0){
+                connection.close();
+                throw new IntegrityViolationException();
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
