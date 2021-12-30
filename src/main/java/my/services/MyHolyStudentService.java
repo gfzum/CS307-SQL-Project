@@ -45,7 +45,7 @@ public class MyHolyStudentService implements StudentService {
              boolean ignoreFull, boolean ignoreConflict, boolean ignorePassed, boolean ignoreMissingPrerequisites,
              int pageSize, int pageIndex) {
 
-        if (studentId == 11713235) {
+        if (studentId == 11718486) {
             System.out.println("here");
         }
 
@@ -76,7 +76,7 @@ public class MyHolyStudentService implements StudentService {
                             "    or (i.first_name || ' ' || i.last_name) like (? ||'%') or ? is null)\n" +
                             "and (cl.day_of_week = ? or ? is null)\n" +
                             "and (? between cl.class_begin and cl.class_end or ? is null)\n" +
-                            "and (cl.location = Any (?) or ? is null)\n" +
+                            "and (cl.location like Any (?) or ? is null)\n" +
                             "order by co.course_id, co.course_name, cs.section_name";
 
             String sql;
@@ -201,7 +201,7 @@ public class MyHolyStudentService implements StudentService {
                                 "    join student_selections ss on cs.section_id = ss.section_id\n" +
                                 "where student_id = ? and semester_id = ?) s2 --学生选的\n" +
                                 "on s2.course_id = s1.course_id\n" +
-                                "or (s2.week_num = s1.week_num and s2.day_of_week = s1.week_num\n" +
+                                "or (s2.week_num = s1.week_num and s2.day_of_week = s1.day_of_week\n" +
                                 "    and (  (s2.class_begin <= s1.class_begin and s2.class_end >= s1.class_end)\n" +
                                 "        or (s2.class_begin >= s1.class_begin and s2.class_begin <= s1.class_end)\n" +
                                 "        or (s2.class_end >= s1.class_begin and s2.class_end <= s1.class_end)))\n" +
