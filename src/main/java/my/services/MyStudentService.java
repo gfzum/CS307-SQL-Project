@@ -143,11 +143,11 @@ public class MyStudentService implements StudentService {
                     }
                     if (searchClassLocations == null){
                         st.setNull(15, Types.ARRAY);
-                        st.setNull(16, Types.ARRAY);
+                        st.setNull(16, Types.VARCHAR);
                     }
                     else{
-                        st.setArray(15,connection.createArrayOf("INTEGER",searchClassLocations.toArray()));
-                        st.setArray(16,connection.createArrayOf("INTEGER",searchClassLocations.toArray()));
+                        st.setArray(15,connection.createArrayOf("varchar",searchClassLocations.toArray()));
+                        st.setString(16,"notNull"); //非空不影响
                     }
 
                     ResultSet rs = st.executeQuery();
@@ -183,7 +183,8 @@ public class MyStudentService implements StudentService {
                             findConfSec.setString(1,course.id);
                             findConfSec.setInt(2,studentId);
                             ResultSet confSection = findConfSec.executeQuery();
-                            conflict.add(String.format("%s[%s]", course.name, confSection.getString(1)));
+                            if (confSection.next())
+                                conflict.add(String.format("%s[%s]", course.name, confSection.getString(1)));
                             if (ignoreConflict) continue;
                         }
                         if (ignoreFull)
@@ -212,19 +213,28 @@ public class MyStudentService implements StudentService {
                         Schedule lesson_time = new Schedule(
                                 rs.getInt(15),lesson.dayOfWeek,lesson.classBegin,lesson.classEnd);
                         if (schedule_enrolled.contains(lesson_time)){
+                            //找出时间冲突的section
                             PreparedStatement findConfTime = connection.prepareStatement("" +
                                     "select course_name, section_name from course_section\n" +
                                     "    join student_selections ss on course_section.section_id = ss.section_id\n" +
                                     "    join classes cl on course_section.section_id = cl.section_id\n" +
                                     "    join course co on course_section.course_id = co.course_id\n" +
-                                    "where student_id = ? and cl.week_num = ?\n" +
+                                    "where student_id = ? and cl.week_num = ? and cl.day_of_week = ?\n" +
                                     "    and ((cl.class_begin <= ? and cl.class_end >= ?) " +
                                     "       or (cl.class_begin >= ? and cl.class_begin <= ?)\n" +
                                     "       or(cl.class_end >=? and cl.class_end <= ?))");
-                            findConfTime.setString(1,course.id);
-                            findConfTime.setInt(2,studentId);
+                            findConfTime.setInt(1,studentId);
+                            findConfTime.setInt(2, rs.getInt(15));
+                            findConfTime.setInt(3, rs.getInt(14));
+                            findConfTime.setInt(4,lesson.classBegin);
+                            findConfTime.setInt(5,lesson.classEnd);
+                            findConfTime.setInt(6,lesson.classBegin);
+                            findConfTime.setInt(7,lesson.classEnd);
+                            findConfTime.setInt(8,lesson.classBegin);
+                            findConfTime.setInt(9,lesson.classEnd);
                             ResultSet confTime = findConfTime.executeQuery();
-                            conflict.add(String.format("%s[%s]", confTime.getString(1),confTime.getString(2)));
+                            if (confTime.next())
+                                conflict.add(String.format("%s[%s]", confTime.getString(1),confTime.getString(2)));
 
                             //由于该section的另一个class可能不time_conflict，故只要有一个conf了result中就不加入。
                             if (ignoreConflict) timeConflict = true; 
@@ -267,14 +277,22 @@ public class MyStudentService implements StudentService {
                                                 "    join student_selections ss on course_section.section_id = ss.section_id\n" +
                                                 "    join classes cl on course_section.section_id = cl.section_id\n" +
                                                 "    join course co on course_section.course_id = co.course_id\n" +
-                                                "where student_id = ? and cl.week_num = ?\n" +
+                                                "where student_id = ? and cl.week_num = ? and cl.day_of_week = ?\n" +
                                                 "    and ((cl.class_begin <= ? and cl.class_end >= ?) " +
                                                 "       or (cl.class_begin >= ? and cl.class_begin <= ?)\n" +
                                                 "       or(cl.class_end >=? and cl.class_end <= ?))");
-                                        findConfTime.setString(1,course.id);
-                                        findConfTime.setInt(2,studentId);
+                                        findConfTime.setInt(1,studentId);
+                                        findConfTime.setInt(2, rs.getInt(15));
+                                        findConfTime.setInt(3, rs.getInt(14));
+                                        findConfTime.setInt(4,lesson.classBegin);
+                                        findConfTime.setInt(5,lesson.classEnd);
+                                        findConfTime.setInt(6,lesson.classBegin);
+                                        findConfTime.setInt(7,lesson.classEnd);
+                                        findConfTime.setInt(8,lesson.classBegin);
+                                        findConfTime.setInt(9,lesson.classEnd);
                                         ResultSet confTime = findConfTime.executeQuery();
-                                        conflict.add(String.format("%s[%s]", confTime.getString(1),confTime.getString(2)));
+                                        if (confTime.next())
+                                            conflict.add(String.format("%s[%s]", confTime.getString(1),confTime.getString(2)));
                                         
                                         if (ignoreConflict) {
                                             timeConflict = true;
