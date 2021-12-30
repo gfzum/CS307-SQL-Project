@@ -59,6 +59,21 @@ public final class ProjectJudge {
 
     public List<CourseSearchEntry> testSearchCourse(List<Object> params) {
         try {
+            List<CourseSearchEntry> re = studentService.searchCourse((int) params.get(0), importer.mapSemesterId((int) params.get(1)),
+                    (String) params.get(2), (String) params.get(3), (String) params.get(4),
+                    (DayOfWeek) params.get(5), shortValue(params.get(6)), (List<String>) params.get(7),
+                    (StudentService.CourseType) params.get(8),
+                    (boolean) params.get(9), (boolean) params.get(10),
+                    (boolean) params.get(11), (boolean) params.get(12),
+                    (int) params.get(13), (int) params.get(14));
+
+            for (CourseSearchEntry e : re){
+                //for (CourseSectionClass c : e.sectionClasses)
+                   // for (String s : e.conflictCourseNames)
+                            //System.out.println(s);
+                //
+                 //System.out.println();
+            }
             return studentService.searchCourse((int) params.get(0), importer.mapSemesterId((int) params.get(1)),
                     (String) params.get(2), (String) params.get(3), (String) params.get(4),
                     (DayOfWeek) params.get(5), shortValue(params.get(6)), (List<String>) params.get(7),
@@ -67,7 +82,7 @@ public final class ProjectJudge {
                     (boolean) params.get(11), (boolean) params.get(12),
                     (int) params.get(13), (int) params.get(14));
         } catch (Throwable t) {
-            //t.printStackTrace();
+            t.printStackTrace();
             return errorCourseList;
         }
     }

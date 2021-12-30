@@ -35,7 +35,6 @@ conflict list的具体思路：在进行搜索时，由于在sql使用了distinc
 ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY
 
 
-
 接下来，考虑搜索课程的过程，对于简单参数仅需进行等于或like条件判定即可，对于locations，使用了`Any()`方法。
 对于courseType，考虑根据传入的参数使用不同的sql语句进行查询。
 ALL：不关联
@@ -46,6 +45,7 @@ PUBLIC：关联，course_id <> major_course_id
 
 接下来，关于四个ignore标签的实现，只需在其为true的时候进行对应条件的判断，当条件符合要求时再往答案list里添加即可
 
+考虑到狗屎的order by，把conflict改为了用sql去查找并order by
 
 
 

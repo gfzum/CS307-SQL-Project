@@ -13,7 +13,7 @@ public class MyFactory extends ServiceFactory {
         registerService(InstructorService.class, new MyInstructorService());
         registerService(MajorService.class, new MyMajorService());
         registerService(SemesterService.class, new MySemesterService());
-        registerService(StudentService.class, new MyStudentService());
+        registerService(StudentService.class, new MyHolyStudentService());
         registerService(UserService.class, new MyUserService());
     }
 
