@@ -22,10 +22,15 @@ public class MyDepartmentService implements DepartmentService{
 
             ResultSet rs = st.getGeneratedKeys();
 
-            if(rs.next())
-                return rs.getInt(1);
+            if(rs.next()) {
+                int ret = rs.getInt(1);
+                connection.close();
+                return ret;
                 //EntityNotFound?
-            else throw new EntityNotFoundException();
+            } else {
+                connection.close();
+                throw new EntityNotFoundException();
+            }
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -40,8 +45,8 @@ public class MyDepartmentService implements DepartmentService{
             PreparedStatement stm = connection.prepareStatement(sql);
             stm.setInt(1,departmentId);
             stm.executeUpdate();
-            stm.close();
-
+            //stm.close();
+            connection.close();
         } catch (SQLException e){
             e.printStackTrace();
             throw new EntityNotFoundException();
@@ -65,8 +70,9 @@ public class MyDepartmentService implements DepartmentService{
 
                 list.add(temp);
             }
-            stm.close();
-            rs.close();
+            //stm.close();
+            //rs.close();
+            connection.close();
             return list;
 
         } catch (SQLException e){
@@ -90,8 +96,9 @@ public class MyDepartmentService implements DepartmentService{
                 temp.id = rs.getInt(1);
                 temp.name = rs.getString(2);
             }
-            stm.close();
-            rs.close();
+            //stm.close();
+            //rs.close();
+            connection.close();
             return temp;
 
         } catch (SQLException e){

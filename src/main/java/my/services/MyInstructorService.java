@@ -24,6 +24,7 @@ public class MyInstructorService implements InstructorService{
             st.setString(3,lastName);
             st.executeUpdate();
 
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
             //throw new IntegrityViolationException(); 没有unique约束，不需要
@@ -67,6 +68,7 @@ public class MyInstructorService implements InstructorService{
             ps2.close();
             rs2.close();
 
+            con.close();
             return list;
 
         } catch (SQLException e) {

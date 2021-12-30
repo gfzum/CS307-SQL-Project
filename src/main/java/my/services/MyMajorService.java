@@ -27,9 +27,14 @@ public class MyMajorService implements MajorService{
 
             ResultSet rs = st.getGeneratedKeys();
 
-            if(rs.next())
-                return rs.getInt(1);
-            else throw new EntityNotFoundException();
+            if(rs.next()) {
+                int ret = rs.getInt(1);
+                connection.close();
+                return ret;
+            } else {
+                connection.close();
+                throw new EntityNotFoundException();
+            }
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -46,6 +51,7 @@ public class MyMajorService implements MajorService{
             st.executeUpdate();
             st.close();
 
+            connection.close();
         } catch (SQLException e){
             e.printStackTrace();
             throw new EntityNotFoundException();
@@ -72,6 +78,8 @@ public class MyMajorService implements MajorService{
             }
             st.close();
             rs.close();
+
+            connection.close();
             return list;
 
         } catch (SQLException e){
@@ -98,6 +106,8 @@ public class MyMajorService implements MajorService{
             }
             st.close();
             rs.close();
+
+            connection.close();
             return temp;
 
         } catch (SQLException e){
@@ -117,6 +127,8 @@ public class MyMajorService implements MajorService{
             st.executeUpdate();
             st.close();
 
+            connection.close();
+
         } catch (SQLException e){
             e.printStackTrace();
             throw new EntityNotFoundException();
@@ -134,6 +146,7 @@ public class MyMajorService implements MajorService{
             st.executeUpdate();
             st.close();
 
+            connection.close();
         } catch (SQLException e){
             e.printStackTrace();
             throw new EntityNotFoundException();

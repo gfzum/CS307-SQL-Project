@@ -10,6 +10,7 @@ import cn.edu.sustech.cs307.exception.EntityNotFoundException;
 import cn.edu.sustech.cs307.exception.IntegrityViolationException;
 import cn.edu.sustech.cs307.service.CourseService;
 
+import javax.accessibility.AccessibleContext;
 import javax.annotation.Nullable;
 import javax.sql.rowset.serial.SerialArray;
 import java.sql.*;
@@ -33,6 +34,7 @@ public class MyCourseService implements CourseService {
             String pre = prerequisiteToString(prerequisite);
             stmt.setString(6, pre);
             stmt.executeUpdate();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
             throw new IntegrityViolationException();
@@ -45,6 +47,7 @@ public class MyCourseService implements CourseService {
                      "insert into prerequisite (course_id) values (?)")) {
             stmt.setString(1, courseId);
             stmt.executeUpdate();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
             throw new IntegrityViolationException();
@@ -90,7 +93,6 @@ public class MyCourseService implements CourseService {
         Connection connection = null;
         try {
             connection = SQLDataSource.getInstance().getSQLConnection();
-            connection.setAutoCommit(false);
             PreparedStatement stmt = connection.prepareStatement(
                     "insert into course_section (course_id, semester_id, section_name, total_capacity, left_capacity) values(?, ?, ?, ?, ?);",
                     PreparedStatement.RETURN_GENERATED_KEYS);
@@ -105,16 +107,9 @@ public class MyCourseService implements CourseService {
                 ResultSet resultSet = stmt.getGeneratedKeys();
                 if (resultSet.next()) {
                     back = resultSet.getInt(1);
-                    connection.commit();
                     connection.close();
-
-
-                    // TODO ：这里为啥要close connection???? commit 有啥用
-
-
                     return back;
                 } else {
-                    connection.commit();
                     connection.close();
                     throw new IntegrityViolationException();
                 }
@@ -172,6 +167,7 @@ public class MyCourseService implements CourseService {
                 stmt.executeUpdate();
             }
 
+            connection.close();
             return classId;
 
         } catch (SQLException e) {
@@ -188,7 +184,10 @@ public class MyCourseService implements CourseService {
             stmt.setString(1, courseId);
 
             int result = stmt.executeUpdate();
+
+            connection.close();
             if (result <= 0) throw new EntityNotFoundException();
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -202,6 +201,8 @@ public class MyCourseService implements CourseService {
             stmt.setInt(1, sectionId);
 
             int result = stmt.executeUpdate();
+
+            connection.close();
             if (result <= 0) throw new EntityNotFoundException();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -216,6 +217,8 @@ public class MyCourseService implements CourseService {
             stmt.setInt(1, classId);
 
             int result = stmt.executeUpdate();
+
+            connection.close();
             if (result <= 0) throw new EntityNotFoundException();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -244,6 +247,8 @@ public class MyCourseService implements CourseService {
                 course.grading = Grade.equals("PASS_OR_FAIL") ? Course.CourseGrading.PASS_OR_FAIL : Course.CourseGrading.HUNDRED_MARK_SCORE;
                 courses.add(course);
             }
+
+            connection.close();
             if (courses.isEmpty())
                 return List.of(); //题目要求
             else
@@ -276,6 +281,7 @@ public class MyCourseService implements CourseService {
                 courseSection.leftCapacity = left;
                 courseSections.add(courseSection);
             }
+            connection.close();
             if (courseSections.isEmpty())
                 return List.of();
             else
@@ -307,6 +313,8 @@ public class MyCourseService implements CourseService {
                 course.credit = credit;
                 course.classHour = hour;
                 course.grading = Grade.equals("PASS_OR_FAIL") ? Course.CourseGrading.PASS_OR_FAIL : Course.CourseGrading.HUNDRED_MARK_SCORE;
+
+                connection.close();
                 return course;
             } else
                 throw new EntityNotFoundException();
@@ -362,7 +370,7 @@ public class MyCourseService implements CourseService {
                 courseSectionClass.weekList = week_list;
                 result.add(courseSectionClass);
             }
-
+            connection.close();
             if (result.isEmpty()) {
                 return List.of();
             } else
@@ -392,9 +400,12 @@ public class MyCourseService implements CourseService {
                 courseSection.totalCapacity = total;
                 courseSection.leftCapacity = left;
 
+                connection.close();
                 return courseSection;
-            } else
+            } else {
+                connection.close();
                 throw new EntityNotFoundException();
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             throw new IntegrityViolationException();
@@ -406,7 +417,7 @@ public class MyCourseService implements CourseService {
         Connection connection = null;
         try {
             connection = SQLDataSource.getInstance().getSQLConnection();
-            connection.setAutoCommit(false);
+            //connection.setAutoCommit(false);
 
             List<Student> result = new ArrayList<>();
             PreparedStatement prepareStatement = connection.prepareStatement(
@@ -423,7 +434,7 @@ public class MyCourseService implements CourseService {
             prepareStatement.setInt(2, semesterId);
 
             ResultSet resultSet = prepareStatement.executeQuery();
-            connection.commit();
+            //connection.commit();
 
             while (resultSet.next()) {
                 int sid = resultSet.getInt(1);
