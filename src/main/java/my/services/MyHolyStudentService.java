@@ -148,7 +148,7 @@ public class MyHolyStudentService implements StudentService {
                         section.id = rs.getInt(6);
                         section.name = rs.getString(7);
                         section.totalCapacity = rs.getInt(8);
-                        section.leftCapacity = rs.getInt(9);
+                        section.leftCapacity = rs.getInt(8);//todo
 
                         if (ignoreFull)
                             if (section.leftCapacity == 0) continue;
@@ -159,27 +159,42 @@ public class MyHolyStudentService implements StudentService {
                         if (ignoreMissingPrerequisites)
                             if (passedPrerequisitesForCourse(studentId,course.id)) continue;
 
-                        //class部分
-                        CourseSectionClass lesson = new CourseSectionClass();
-                        lesson.id = rs.getInt(10);
-                        Instructor ins = new Instructor();
-                        ins.id = rs.getInt(11);
-                        ins.fullName = MyUserService.getFullName(rs.getString(12),rs.getString(13));
-                        lesson.instructor = ins;
-                        lesson.dayOfWeek = DayOfWeek.of(rs.getInt(14));
-                        lesson.classBegin = rs.getShort(16);
-                        lesson.classEnd = rs.getShort(17);
-                        lesson.location = rs.getString(18);
+                        //class部分 根据找到的section找到对应的所有class
+                        PreparedStatement st_findClass = connection.prepareStatement(
+                        "select cl.class_id, i.instructor_id, i.first_name, i.last_name,\n" +
+                            "       cl.day_of_week, cl.week_num,\n" +
+                            "       cl.class_begin, cl.class_end, cl.location\n" +
+                            "from classes cl\n" +
+                            "    join course_section cs on cl.section_id = cs.section_id\n" +
+                            "    join instructor i on cl.instructor_id = i.instructor_id\n" +
+                            "where cl.section_id = ?");
+                        st_findClass.setInt(1,section.id);
+                        ResultSet rs_findClass = st_findClass.executeQuery();
 
-                        PreparedStatement week_st = connection.prepareStatement("" +
-                                "select week_num from classes where class_id = ?");
-                        week_st.setInt(1, rs.getInt(10));
-                        ResultSet week_rs = week_st.executeQuery();
-                        lesson.weekList = new HashSet<>();
-                        while (week_rs.next())
-                            lesson.weekList.add(week_rs.getShort(1));
+                        while(rs_findClass.next()){
+                            CourseSectionClass lesson = new CourseSectionClass();
+                            lesson.id = rs_findClass.getInt(1);
 
-                        classes.add(lesson);
+                            Instructor ins = new Instructor();
+                            ins.id = rs_findClass.getInt(2);
+                            ins.fullName = MyUserService.getFullName(rs_findClass.getString(3),rs_findClass.getString(4));
+                            lesson.instructor = ins;
+
+                            lesson.dayOfWeek = DayOfWeek.of(rs_findClass.getInt(5));
+                            lesson.classBegin = rs_findClass.getShort(7);
+                            lesson.classEnd = rs_findClass.getShort(8);
+                            lesson.location = rs_findClass.getString(9);
+
+                            PreparedStatement week_st = connection.prepareStatement("" +
+                                    "select week_num from classes where class_id = ?");
+                            week_st.setInt(1, rs_findClass.getInt(6));
+                            ResultSet week_rs = week_st.executeQuery();
+                            lesson.weekList = new HashSet<>();
+                            while (week_rs.next())
+                                lesson.weekList.add(week_rs.getShort(1));
+
+                            classes.add(lesson);
+                        }
 
                         // conflict judge 一下就能找出courseConflict和所有class的timeConflict，太优雅了！
                         PreparedStatement st_conf = connection.prepareStatement(
@@ -218,42 +233,12 @@ public class MyHolyStudentService implements StudentService {
                             conflict.add(rs_conf.getString(1));
                         }
 
-                        //找其他class，再用一个sql查找其他week_num存入weekList中，可以有优化空间
-                        //必须要让rs next完到下一个新的course
-                        while (true) {
-                            if (rs.next()) {
-                                if (rs.getString(1).equals(course.id) && rs.getInt(6) == section.id) {
-                                    //
-                                    if (!(ignoreConflict && is_conflicted)) {
-                                        CourseSectionClass new_temp_class = new CourseSectionClass();
-                                        new_temp_class.id = rs.getInt(10);
-                                        Instructor ins_temp = new Instructor();
-                                        ins_temp.id = rs.getInt(11);
-                                        ins_temp.fullName = MyUserService.getFullName(rs.getString(12), rs.getString(13));
-                                        new_temp_class.instructor = ins_temp;
-                                        new_temp_class.dayOfWeek = DayOfWeek.of(rs.getInt(14));
-
-                                        new_temp_class.classBegin = rs.getShort(16);
-                                        new_temp_class.classEnd = rs.getShort(17);
-                                        new_temp_class.location = rs.getString(18);
-
-                                        PreparedStatement temp_st = connection.prepareStatement("" +
-                                                "select week_num from classes where class_id = ?");
-                                        temp_st.setInt(1, rs.getInt(10));
-                                        ResultSet temp_rs = temp_st.executeQuery();
-                                        new_temp_class.weekList = new HashSet<>();
-                                        while (temp_rs.next())
-                                            new_temp_class.weekList.add(temp_rs.getShort(1));
-
-                                        classes.add(new_temp_class);
-                                    }
-                                }
-                                //找完class了
-                                else {
+                        //让rs next到下一个新的course
+                        while (rs.next()) {
+                                if (!rs.getString(1).equals(course.id) || rs.getInt(6) != section.id) {
                                     rs.previous();
                                     break;
                                 }
-                            } else break;
                         }
 
                         if (ignoreConflict && is_conflicted) continue;
