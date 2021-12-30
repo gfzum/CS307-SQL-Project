@@ -25,6 +25,11 @@ public class MyCourseService implements CourseService {
              PreparedStatement stmt = connection.prepareStatement(
                      "insert into course (course_id, course_name, credit, class_hour, grading, prerequisite) values (?,?,?,?,?,?)")) {
             //courseId = courseId.toUpperCase(); TODO:看看存不存在又大写又小写的课程？
+
+            if(courseId == "ME101"){
+                System.out.println("here");
+            }
+
             stmt.setString(1, courseId);
             stmt.setString(2, courseName);
             stmt.setInt(3, credit);
@@ -90,6 +95,7 @@ public class MyCourseService implements CourseService {
 
     @Override
     public int addCourseSection(String courseId, int semesterId, String sectionName, int totalCapacity) {
+
         Connection connection = null;
         try {
             connection = SQLDataSource.getInstance().getSQLConnection();

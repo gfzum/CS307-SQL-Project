@@ -30,5 +30,9 @@ json文件中，major和department是有ID的，但是传入函数中并没有�
 
 于是enrollCourse2稳定在了787个点，开始de剩下的bug
 
-然后发现bug出现在COURSE_CONFLICT这个点上
+然后发现bug出现在COURSE_CONFLICT这个点上。
+COURSE_CONFLICT其实是比较复杂的，sql语句也比较长。后来发现是sql里面判断了一个grade=null的判断句，
+来验证这个课程是否是这个学期选的。结果发现逻辑上是有问题的，因为原来这个学期选得课程也可能被通过
+AddCourseGrade被手动添加进来，结果这个学期选的课也可以有grade！！
+最后把判断语句改成了semester相等就通过了所有测试点。
 

@@ -665,6 +665,7 @@ public class MyStudentService implements StudentService {
             stmt.setInt(3, sectionId);
 
             int ret = stmt.executeUpdate();
+            connection.close();
             if (ret <= 0) throw new IntegrityViolationException();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -861,6 +862,7 @@ public class MyStudentService implements StudentService {
                 ret.department = new Department();
                 ret.department.id = rsst.getInt(3);
                 ret.department.name = rsst.getString(4);
+
                 connection.close();
                 return ret;
             } else {
