@@ -32,4 +32,6 @@ PUBLIC：关联，course_id <> major_course_id
 
 接下来，关于四个ignore标签的实现，只需在其为true的时候进行对应条件的判断，当条件符合要求时再往答案list里添加即可
 
+在最后对conflict list进行sort后加入result中
+
 关于page

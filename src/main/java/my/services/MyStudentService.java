@@ -82,6 +82,7 @@ public class MyStudentService implements StudentService {
                 schedule_enrolled.add(new Schedule(week_num,day,c_begin,c_end));
             }
 
+            //查找课程
             String sql_basic_select =
                     "select co.course_id, co.course_name, co.credit, co.class_hour, co.grading ,\n" +
                     "       cs.section_id, cs.section_name, cs.total_capacity, cs.left_capacity,\n" +
@@ -104,7 +105,8 @@ public class MyStudentService implements StudentService {
                     "group by co.course_id, co.course_name, co.credit, co.class_hour, co.grading ,\n" +
                     "       cs.section_id, cs.section_name, cs.total_capacity, cs.left_capacity,\n" +
                     "       cl.class_id, cl.instructor_id, i.first_name, i.last_name,\n" +
-                    "       cl.day_of_week, cl.week_num, cl.class_begin, cl.class_end, cl.location\n";
+                    "       cl.day_of_week, cl.week_num, cl.class_begin, cl.class_end, cl.location\n" +
+                    "order by co.course_id, co.course_name || '[' || cs.section_name || ']'";
 
             String sql;
 
@@ -151,13 +153,14 @@ public class MyStudentService implements StudentService {
                     }
 
                     ResultSet rs = st.executeQuery();
-                    
+
+                    //每一个循环添加一个courseEntry
                     while(rs.next()){
                         CourseSearchEntry cse = new CourseSearchEntry();
                         Course course = new Course();
                         CourseSection section = new CourseSection();
                         Set<CourseSectionClass> classes = new HashSet<>();
-                        Set<String> conflict = new HashSet<>();//todo sorted alphabetically(用 sort？)
+                        Set<String> conflict = new HashSet<>();//sorted alphabetically
 
                         course.id = rs.getString(1);
                         course.name = rs.getString(2);
@@ -322,18 +325,19 @@ public class MyStudentService implements StudentService {
                         cse.course = course;
                         cse.section = section;
                         cse.sectionClasses = classes;
-                        cse.conflictCourseNames = new ArrayList<>(conflict);
+
+                        List<String> conf = new ArrayList<>(conflict);
+                        Collections.sort(conf);
+                        cse.conflictCourseNames = conf;
+
                         result.add(cse);
                     }
                     break;
 
                 case MAJOR_COMPULSORY:
-                    throw new UnsupportedOperationException();
-                    //break;
-
                 case MAJOR_ELECTIVE:
-                    throw new UnsupportedOperationException();
-                    //break;
+
+                    break;
 
                 case CROSS_MAJOR:
                     throw new UnsupportedOperationException();

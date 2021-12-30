@@ -28,13 +28,14 @@ where semester_id = ?
 group by co.course_id, co.course_name, co.credit, co.class_hour, co.grading ,
        cs.section_id, cs.section_name, cs.total_capacity, cs.left_capacity,
        cl.class_id, cl.instructor_id, i.first_name, i.last_name,
-       cl.day_of_week, cl.class_begin, cl.class_end, cl.location
+       cl.day_of_week, cl.week_num, cl.class_begin, cl.class_end, cl.location
+order by co.course_id, co.course_name || '[' || cs.section_name || ']'
 ;
 
 --专业必修和选修
 select co.course_id, co.course_name, co.credit, co.class_hour, co.grading ,
        cs.section_id, cs.section_name, cs.total_capacity, cs.left_capacity,
-       cl.classid, cl.instructor_id, cl.day_of_week, cl.week_num,
+       cl.class_id, cl.instructor_id, cl.day_of_week, cl.week_num,
        cl.class_begin, cl.class_end, cl.location
 from course co
     join course_section cs on co.course_id = cs.course_id
@@ -56,7 +57,7 @@ where s.student_id = ? and semester_id = ?
 --跨专业
 select co.course_id, co.course_name, co.credit, co.class_hour, co.grading ,
        cs.section_id, cs.section_name, cs.total_capacity, cs.left_capacity,
-       cl.classid, cl.instructor_id, cl.day_of_week, cl.week_num,
+       cl.class_id, cl.instructor_id, cl.day_of_week, cl.week_num,
        cl.class_begin, cl.class_end, cl.location
 from course co
     join course_section cs on co.course_id = cs.course_id
@@ -77,7 +78,7 @@ where s.student_id = ? and semester_id = ?
 --公选
 select co.course_id, co.course_name, co.credit, co.class_hour, co.grading ,
        cs.section_id, cs.section_name, cs.total_capacity, cs.left_capacity,
-       cl.classid, cl.instructor_id, cl.day_of_week, cl.week_num,
+       cl.class_id, cl.instructor_id, cl.day_of_week, cl.week_num,
        cl.class_begin, cl.class_end, cl.location
 from course co
     join course_section cs on co.course_id = cs.course_id
