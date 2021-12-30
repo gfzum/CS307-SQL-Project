@@ -45,7 +45,7 @@ public class MyHolyStudentService implements StudentService {
              boolean ignoreFull, boolean ignoreConflict, boolean ignorePassed, boolean ignoreMissingPrerequisites,
              int pageSize, int pageIndex) {
 
-        if (studentId == 11713235) {
+        if (studentId == 11718486) {
             System.out.println("here");
         }
 
@@ -76,7 +76,7 @@ public class MyHolyStudentService implements StudentService {
                             "    or (i.first_name || ' ' || i.last_name) like (? ||'%') or ? is null)\n" +
                             "and (cl.day_of_week = ? or ? is null)\n" +
                             "and (? between cl.class_begin and cl.class_end or ? is null)\n" +
-                            "and (cl.location = Any (?) or ? is null)\n" +
+                            "and (cl.location like Any (?) or ? is null)\n" +
                             "order by co.course_id, co.course_name, cs.section_name";
 
             String sql;
@@ -126,7 +126,7 @@ public class MyHolyStudentService implements StudentService {
                     }
 
                     ResultSet rs = st.executeQuery();
-
+                    int cnt = 0;
                     //每一个循环添加一个courseEntry
                     while(rs.next()){
                         CourseSearchEntry cse = new CourseSearchEntry();
@@ -181,7 +181,7 @@ public class MyHolyStudentService implements StudentService {
 
                         classes.add(lesson);
 
-                        // conflict judge 一下就能找出courseConflict和所有class的timeConflict，太优雅辣！
+                        // conflict judge 一下就能找出courseConflict和所有class的timeConflict，太优雅了！
                         PreparedStatement st_conf = connection.prepareStatement(
                         "select course_name || '[' || section_name || ']' from(\n" +
                                 "select distinct s2.course_name, s2.section_name\n" +
@@ -201,7 +201,7 @@ public class MyHolyStudentService implements StudentService {
                                 "    join student_selections ss on cs.section_id = ss.section_id\n" +
                                 "where student_id = ? and semester_id = ?) s2 --学生选的\n" +
                                 "on s2.course_id = s1.course_id\n" +
-                                "or (s2.week_num = s1.week_num and s2.day_of_week = s1.week_num\n" +
+                                "or (s2.week_num = s1.week_num and s2.day_of_week = s1.day_of_week\n" +
                                 "    and (  (s2.class_begin <= s1.class_begin and s2.class_end >= s1.class_end)\n" +
                                 "        or (s2.class_begin >= s1.class_begin and s2.class_begin <= s1.class_end)\n" +
                                 "        or (s2.class_end >= s1.class_begin and s2.class_end <= s1.class_end)))\n" +
@@ -261,7 +261,7 @@ public class MyHolyStudentService implements StudentService {
                         cse.section = section;
                         cse.sectionClasses = classes;
                         cse.conflictCourseNames = conflict;
-
+                        
                         result.add(cse);
                     }
                     break;
@@ -280,7 +280,16 @@ public class MyHolyStudentService implements StudentService {
                     //break;
             }
             connection.close();
-            return result;
+            
+            List<CourseSearchEntry> finalResult = new ArrayList<>();
+            int cnt = 0;
+            for (int i = pageIndex * pageSize; i < result.size(); i++) {
+                finalResult.add(result.get(i));
+                cnt++;
+                if (cnt == pageSize) break;
+            }
+            
+            return finalResult;
 
         } catch (SQLException e) {
             e.printStackTrace();

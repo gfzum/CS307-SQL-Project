@@ -36,6 +36,8 @@ ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY
 
 
 接下来，考虑搜索课程的过程，对于简单参数仅需进行等于或like条件判定即可，对于locations，使用了`Any()`方法。
+另外，由于传入时参数仅仅为”一教“、“荔园”等字样，而课程的实际地点为“一教406”、“荔园207”这样的字样，
+而any()又意外地像坨屎，所以对原location list的每个元素后面加了%传入，然后用like匹配。
 对于courseType，考虑根据传入的参数使用不同的sql语句进行查询。
 ALL：不关联
 MAJOR_COMPULSORY：student_major_id = course_major_id, type = comp
