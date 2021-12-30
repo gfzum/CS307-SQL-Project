@@ -1,4 +1,5 @@
---create database project2 with encoding = 'UTF8' LC_COLLATE = 'C' template template0;
+--create database project2 with encoding = 'UTF8' LC_COLLATE = 'C';
+
 create table course
 (
 	course_id varchar(20) not null
@@ -24,9 +25,6 @@ create table semester
 	sem_end date not null
 );
 
-create unique index semester_sem_name_uindex
-	on semester (sem_name);
-
 create unique index semester_semester_id_uindex
 	on semester (semester_id);
 
@@ -49,6 +47,9 @@ create table course_section
                 on delete cascade
 );
 
+create unique index course_section_section_id_uindex
+    on course_section (section_id);
+
 create table department
 (
 	dept_id serial not null
@@ -59,17 +60,15 @@ create table department
 
 create table instructor
 (
-	instructor_id int not null,
+	instructor_id int not null
+	    constraint instructor_pk
+	        primary key,
 	first_name varchar(50),
 	last_name varchar(50)
 );
 
 create unique index instructor_instructor_id_uindex
 	on instructor (instructor_id);
-
-alter table instructor
-	add constraint instructor_pk
-		primary key (instructor_id);
 
 create table major
 (
@@ -88,7 +87,9 @@ create unique index major_major_id_uindex
 
 create table student
 (
-	student_id int not null,
+	student_id int not null
+        constraint student_pk
+            primary key,
 	first_name varchar(50),
 	last_name varchar(50),
 	enrolled_date date not null,
@@ -100,11 +101,6 @@ create table student
 
 create unique index student_student_id_uindex
 	on student (student_id);
-
-alter table student
-	add constraint student_pk
-		primary key (student_id);
-
 
 create table classes
 (
@@ -125,6 +121,9 @@ create table classes
     constraint classes_pk
         primary key (class_id, week_num)
 );
+
+create index classes_class_id_index
+    on classes (class_id);
 
 create table course_majors
 (
