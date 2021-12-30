@@ -84,7 +84,8 @@ public class MyStudentService implements StudentService {
 
             //查找课程
             String sql_basic_select =
-                    "select co.course_id, co.course_name, co.credit, co.class_hour, co.grading ,\n" +
+                    "select distinct " +
+                    "       co.course_id, co.course_name, co.credit, co.class_hour, co.grading ,\n" +
                     "       cs.section_id, cs.section_name, cs.total_capacity, cs.left_capacity,\n" +
                     "       cl.class_id, cl.instructor_id, i.first_name, i.last_name,\n" +
                     "       cl.day_of_week, cl.week_num, cl.class_begin, cl.class_end, cl.location\n" +
@@ -94,19 +95,15 @@ public class MyStudentService implements StudentService {
                     "    join instructor i on cl.instructor_id = i.instructor_id\n";
 
             String sql_basic_where =
-                    "and (cs.course_id like ('%'||?||'%') or ? is null)\n" +
-                    "and (co.course_name || '[' || cs.section_name || ']' like ('%'||?||'%') or ? is null)\n" +
-                    "and (i.first_name like (?||'%') or i.last_name like (?||'%')\n" +
-                    "    or (i.first_name || i.last_name) like (?||'%')\n" +
-                    "    or (i.first_name || ' ' || i.last_name) like (?||'%') or ? is null)\n" +
+                    "and (cs.course_id like ('%'|| ? ||'%') or ? is null)\n" +
+                    "and (co.course_name || '[' || cs.section_name || ']' like ('%'|| ? ||'%') or ? is null)\n" +
+                    "and (i.first_name like (? ||'%') or i.last_name like (? ||'%')\n" +
+                    "    or (i.first_name || i.last_name) like (? ||'%')\n" +
+                    "    or (i.first_name || ' ' || i.last_name) like (? ||'%') or ? is null)\n" +
                     "and (cl.day_of_week = ? or ? is null)\n" +
                     "and (? between cl.class_begin and cl.class_end or ? is null)\n" +
                     "and (cl.location = Any (?) or ? is null)\n" +
-                    "group by co.course_id, co.course_name, co.credit, co.class_hour, co.grading ,\n" +
-                    "       cs.section_id, cs.section_name, cs.total_capacity, cs.left_capacity,\n" +
-                    "       cl.class_id, cl.instructor_id, i.first_name, i.last_name,\n" +
-                    "       cl.day_of_week, cl.week_num, cl.class_begin, cl.class_end, cl.location\n" +
-                    "order by co.course_id, co.course_name || '[' || cs.section_name || ']'";
+                    "order by co.course_id, co.course_name, cs.section_name";
 
             String sql;
 
