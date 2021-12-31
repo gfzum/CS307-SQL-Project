@@ -33,7 +33,6 @@ public class MyHolyStudentService implements StudentService {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
     }
 
     @Override
@@ -48,8 +47,6 @@ public class MyHolyStudentService implements StudentService {
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection()) {
 
             List<CourseSearchEntry> result = new ArrayList<>();
-
-            //todo connect close？
 
             //查找课程
             String sql_basic_select =
@@ -124,143 +121,144 @@ public class MyHolyStudentService implements StudentService {
 
                 case MAJOR_COMPULSORY:
                 case MAJOR_ELECTIVE:
-//                    sql = sql_basic_select +
-//                            "join course_majors cm on co.course_id = cm.course_id\n" +
-//                        "    join student s on cm.major_id = s.major_id\n" +
-//                            "where s.student_id = ? and semester_id = ?\n"
-//                            + sql_basic_where;
-//                    if (searchCourseType == CourseType.MAJOR_COMPULSORY)
-//                        sql = sql + " and cm.course_type = 'MAJOR_COMPULSORY\n' ";
-//                    if (searchCourseType == CourseType.MAJOR_ELECTIVE)
-//                        sql = sql + " and cm.course_type = 'MAJOR_ELECTIVE'\n";
-//                    sql = sql + "order by co.course_id, co.course_name, cs.section_name";
-//
-//                    st = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-//                    st.setInt(1, studentId);
-//                    st.setInt(2, semesterId);
-//                    st.setString(3, searchCid);
-//                    st.setString(4, searchCid);
-//                    st.setString(5, searchName);
-//                    st.setString(6, searchName);
-//                    st.setString(7, searchInstructor);
-//                    st.setString(8, searchInstructor);
-//                    st.setString(9, searchInstructor);
-//                    st.setString(10, searchInstructor);
-//                    st.setString(11, searchInstructor);
-//                    if (searchDayOfWeek == null) {
-//                        st.setNull(12, Types.INTEGER);
-//                        st.setNull(13, Types.INTEGER);
-//                    } else {
-//                        st.setInt(12, searchDayOfWeek.getValue());
-//                        st.setInt(13, searchDayOfWeek.getValue());
-//                    }
-//                    if (searchClassTime == null) {
-//                        st.setNull(14, Types.INTEGER);
-//                        st.setNull(15, Types.INTEGER);
-//                    } else {
-//                        st.setInt(14, searchClassTime);
-//                        st.setInt(15, searchClassTime);
-//                    }
-//                    if (searchClassLocations == null) {
-//                        st.setNull(16, Types.ARRAY);
-//                        st.setNull(17, Types.VARCHAR);
-//                    } else {
-//                        List<String> newLocation = new ArrayList<>();
-//                        for (String s : searchClassLocations) newLocation.add(s + "%");
-//                        st.setArray(16, connection.createArrayOf("varchar", newLocation.toArray()));
-//                        st.setString(17, "notNull"); //非空不影响
-//                    }
+                    sql = sql_basic_select +
+                            "join course_majors cm on co.course_id = cm.course_id\n" +
+                        "    join student s on cm.major_id = s.major_id\n" +
+                            "where s.student_id = ? and semester_id = ?\n"
+                            + sql_basic_where;
+                    if (searchCourseType == CourseType.MAJOR_COMPULSORY)
+                        sql = sql + " and cm.course_type = 'MAJOR_COMPULSORY\n' ";
+                    if (searchCourseType == CourseType.MAJOR_ELECTIVE)
+                        sql = sql + " and cm.course_type = 'MAJOR_ELECTIVE'\n";
+                    sql = sql + "order by co.course_id, co.course_name, cs.section_name";
+
+                    st = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                    st.setInt(1, studentId);
+                    st.setInt(2, semesterId);
+                    st.setString(3, searchCid);
+                    st.setString(4, searchCid);
+                    st.setString(5, searchName);
+                    st.setString(6, searchName);
+                    st.setString(7, searchInstructor);
+                    st.setString(8, searchInstructor);
+                    st.setString(9, searchInstructor);
+                    st.setString(10, searchInstructor);
+                    st.setString(11, searchInstructor);
+                    if (searchDayOfWeek == null) {
+                        st.setNull(12, Types.INTEGER);
+                        st.setNull(13, Types.INTEGER);
+                    } else {
+                        st.setInt(12, searchDayOfWeek.getValue());
+                        st.setInt(13, searchDayOfWeek.getValue());
+                    }
+                    if (searchClassTime == null) {
+                        st.setNull(14, Types.INTEGER);
+                        st.setNull(15, Types.INTEGER);
+                    } else {
+                        st.setInt(14, searchClassTime);
+                        st.setInt(15, searchClassTime);
+                    }
+                    if (searchClassLocations == null) {
+                        st.setNull(16, Types.ARRAY);
+                        st.setNull(17, Types.VARCHAR);
+                    } else {
+                        List<String> newLocation = new ArrayList<>();
+                        for (String s : searchClassLocations) newLocation.add(s + "%");
+                        st.setArray(16, connection.createArrayOf("varchar", newLocation.toArray()));
+                        st.setString(17, "notNull"); //非空不影响
+                    }
                     break;
 
                 case CROSS_MAJOR:
-//                    sql = sql_basic_select +
-//                            "join course_majors cm on co.course_id = cm.course_id\n" +
-//                            "    join student s on cm.major_id <> s.major_id\n" +
-//                            "where s.student_id = ? and semester_id = ?\n"
-//                            + sql_basic_where
-//                            + "order by co.course_id, co.course_name, cs.section_name";
-//
-//                    st = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-//                    st.setInt(1, studentId);
-//                    st.setInt(2, semesterId);
-//                    st.setString(3, searchCid);
-//                    st.setString(4, searchCid);
-//                    st.setString(5, searchName);
-//                    st.setString(6, searchName);
-//                    st.setString(7, searchInstructor);
-//                    st.setString(8, searchInstructor);
-//                    st.setString(9, searchInstructor);
-//                    st.setString(10, searchInstructor);
-//                    st.setString(11, searchInstructor);
-//                    if (searchDayOfWeek == null) {
-//                        st.setNull(12, Types.INTEGER);
-//                        st.setNull(13, Types.INTEGER);
-//                    } else {
-//                        st.setInt(12, searchDayOfWeek.getValue());
-//                        st.setInt(13, searchDayOfWeek.getValue());
-//                    }
-//                    if (searchClassTime == null) {
-//                        st.setNull(14, Types.INTEGER);
-//                        st.setNull(15, Types.INTEGER);
-//                    } else {
-//                        st.setInt(14, searchClassTime);
-//                        st.setInt(15, searchClassTime);
-//                    }
-//                    if (searchClassLocations == null) {
-//                        st.setNull(16, Types.ARRAY);
-//                        st.setNull(17, Types.VARCHAR);
-//                    } else {
-//                        List<String> newLocation = new ArrayList<>();
-//                        for (String s : searchClassLocations) newLocation.add(s + "%");
-//                        st.setArray(16, connection.createArrayOf("varchar", newLocation.toArray()));
-//                        st.setString(17, "notNull"); //非空不影响
-//                    }
+                    sql = sql_basic_select +
+                            "join course_majors cm on co.course_id = cm.course_id\n" +
+                            "    join student s on cm.major_id <> s.major_id\n" +
+                            "where s.student_id = ? and semester_id = ?\n"
+                            + sql_basic_where
+                            + "order by co.course_id, co.course_name, cs.section_name";
+
+                    st = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                    st.setInt(1, studentId);
+                    st.setInt(2, semesterId);
+                    st.setString(3, searchCid);
+                    st.setString(4, searchCid);
+                    st.setString(5, searchName);
+                    st.setString(6, searchName);
+                    st.setString(7, searchInstructor);
+                    st.setString(8, searchInstructor);
+                    st.setString(9, searchInstructor);
+                    st.setString(10, searchInstructor);
+                    st.setString(11, searchInstructor);
+                    if (searchDayOfWeek == null) {
+                        st.setNull(12, Types.INTEGER);
+                        st.setNull(13, Types.INTEGER);
+                    } else {
+                        st.setInt(12, searchDayOfWeek.getValue());
+                        st.setInt(13, searchDayOfWeek.getValue());
+                    }
+                    if (searchClassTime == null) {
+                        st.setNull(14, Types.INTEGER);
+                        st.setNull(15, Types.INTEGER);
+                    } else {
+                        st.setInt(14, searchClassTime);
+                        st.setInt(15, searchClassTime);
+                    }
+                    if (searchClassLocations == null) {
+                        st.setNull(16, Types.ARRAY);
+                        st.setNull(17, Types.VARCHAR);
+                    } else {
+                        List<String> newLocation = new ArrayList<>();
+                        for (String s : searchClassLocations) newLocation.add(s + "%");
+                        st.setArray(16, connection.createArrayOf("varchar", newLocation.toArray()));
+                        st.setString(17, "notNull"); //非空不影响
+                    }
                     break;
 
                 case PUBLIC:
-//                    sql = sql_basic_select +
-//                            "join course_majors cm on co.course_id <> cm.course_id\n" +
-//                            "where semester_id = ?"
-//                            + sql_basic_where
-//                            + "order by co.course_id, co.course_name, cs.section_name";
-//
-//                    st = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-//                    st.setInt(1, semesterId);
-//                    st.setString(2, searchCid);
-//                    st.setString(3, searchCid);
-//                    st.setString(4, searchName);
-//                    st.setString(5, searchName);
-//                    st.setString(6, searchInstructor);
-//                    st.setString(7, searchInstructor);
-//                    st.setString(8, searchInstructor);
-//                    st.setString(9, searchInstructor);
-//                    st.setString(10, searchInstructor);
-//                    if (searchDayOfWeek == null) {
-//                        st.setNull(11, Types.INTEGER);
-//                        st.setNull(12, Types.INTEGER);
-//                    } else {
-//                        st.setInt(11, searchDayOfWeek.getValue());
-//                        st.setInt(12, searchDayOfWeek.getValue());
-//                    }
-//                    if (searchClassTime == null) {
-//                        st.setNull(13, Types.INTEGER);
-//                        st.setNull(14, Types.INTEGER);
-//                    } else {
-//                        st.setInt(13, searchClassTime);
-//                        st.setInt(14, searchClassTime);
-//                    }
-//                    if (searchClassLocations == null) {
-//                        st.setNull(15, Types.ARRAY);
-//                        st.setNull(16, Types.VARCHAR);
-//                    } else {
-//                        List<String> newLocation = new ArrayList<>();
-//                        for (String s : searchClassLocations) newLocation.add(s + "%");
-//                        st.setArray(15, connection.createArrayOf("varchar", newLocation.toArray()));
-//                        st.setString(16, "notNull"); //非空不影响
-//                    }
+                    sql = sql_basic_select +
+                            "join course_majors cm on co.course_id <> cm.course_id\n" +
+                            "where semester_id = ?"
+                            + sql_basic_where
+                            + "order by co.course_id, co.course_name, cs.section_name";
+
+                    st = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                    st.setInt(1, semesterId);
+                    st.setString(2, searchCid);
+                    st.setString(3, searchCid);
+                    st.setString(4, searchName);
+                    st.setString(5, searchName);
+                    st.setString(6, searchInstructor);
+                    st.setString(7, searchInstructor);
+                    st.setString(8, searchInstructor);
+                    st.setString(9, searchInstructor);
+                    st.setString(10, searchInstructor);
+                    if (searchDayOfWeek == null) {
+                        st.setNull(11, Types.INTEGER);
+                        st.setNull(12, Types.INTEGER);
+                    } else {
+                        st.setInt(11, searchDayOfWeek.getValue());
+                        st.setInt(12, searchDayOfWeek.getValue());
+                    }
+                    if (searchClassTime == null) {
+                        st.setNull(13, Types.INTEGER);
+                        st.setNull(14, Types.INTEGER);
+                    } else {
+                        st.setInt(13, searchClassTime);
+                        st.setInt(14, searchClassTime);
+                    }
+                    if (searchClassLocations == null) {
+                        st.setNull(15, Types.ARRAY);
+                        st.setNull(16, Types.VARCHAR);
+                    } else {
+                        List<String> newLocation = new ArrayList<>();
+                        for (String s : searchClassLocations) newLocation.add(s + "%");
+                        st.setArray(15, connection.createArrayOf("varchar", newLocation.toArray()));
+                        st.setString(16, "notNull"); //非空不影响
+                    }
                     break;
             }
-            if (st == null) return List.of();
+            //if (st == null) return List.of();
+
             rs = st.executeQuery();
             //每一个循环添加一个courseEntry
             while(rs.next()){
