@@ -2,8 +2,6 @@
 
 *12011411 吴笑丰	12011412 杨鹭鸣	12011216 刘锦润*
 
-
-
 # content
 
 - 0.小组成员分工与贡献
@@ -155,55 +153,55 @@
 ​		以下为相关Java代码：
 
 ``` java
-    @Override
-    public List<CourseSectionClass> getCourseSectionClasses(int sectionId) {
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection()) {
-            List<CourseSectionClass> result = new ArrayList<>();
+@Override
+public List<CourseSectionClass> getCourseSectionClasses(int sectionId) {
+    try (Connection connection = SQLDataSource.getInstance().getSQLConnection()) {
+        List<CourseSectionClass> result = new ArrayList<>();
 
-            PreparedStatement prepareStatement = connection.prepareStatement("select class_id, i.instructor_id as instructor_id, i.first_name||' '||i.last_name as full_name,day_of_week, class_begin, class_end, location, week_num from classes inner join instructor i on i.instructor_id = classes.instructor_id where section_id=? group by class_id, instructor_id, full_name, i.instructor_id, day_of_week, class_begin, class_end, location");
-            prepareStatement.setInt(1, sectionId);
-            ResultSet resultSet = prepareStatement.executeQuery();
+        PreparedStatement prepareStatement = connection.prepareStatement("select class_id, i.instructor_id as instructor_id, i.first_name||' '||i.last_name as full_name,day_of_week, class_begin, class_end, location, week_num from classes inner join instructor i on i.instructor_id = classes.instructor_id where section_id=? group by class_id, instructor_id, full_name, i.instructor_id, day_of_week, class_begin, class_end, location");
+        prepareStatement.setInt(1, sectionId);
+        ResultSet resultSet = prepareStatement.executeQuery();
 
-            while (resultSet.next()) {
-                CourseSectionClass courseSectionClass = new CourseSectionClass();
-                Instructor instructor = new Instructor();
+        while (resultSet.next()) {
+            CourseSectionClass courseSectionClass = new CourseSectionClass();
+            Instructor instructor = new Instructor();
 
-                courseSectionClass.id = resultSet.getInt(1);
-                instructor.id = resultSet.getInt(2);
-                instructor.fullName = resultSet.getString(3);
-                courseSectionClass.instructor = instructor;
-                courseSectionClass.dayOfWeek = DayOfWeek.of(resultSet.getInt(4));
-                courseSectionClass.classBegin = (short) resultSet.getInt(5);
-                courseSectionClass.classEnd = (short) resultSet.getInt(6);
-                courseSectionClass.location = resultSet.getString(7);
-                Array weekList = resultSet.getArray(8);
+            courseSectionClass.id = resultSet.getInt(1);
+            instructor.id = resultSet.getInt(2);
+            instructor.fullName = resultSet.getString(3);
+            courseSectionClass.instructor = instructor;
+            courseSectionClass.dayOfWeek = DayOfWeek.of(resultSet.getInt(4));
+            courseSectionClass.classBegin = (short) resultSet.getInt(5);
+            courseSectionClass.classEnd = (short) resultSet.getInt(6);
+            courseSectionClass.location = resultSet.getString(7);
+            Array weekList = resultSet.getArray(8);
 
-                Set<Short> week_list = new HashSet<>();
-                for (Object o : (Object[]) weekList.getArray()) {
-                    if (o instanceof Number) {
-                        try {
-                            int x = (int) o;
-                            short s = (short) x;
-                            week_list.add(s);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            break;
-                        }
+            Set<Short> week_list = new HashSet<>();
+            for (Object o : (Object[]) weekList.getArray()) {
+                if (o instanceof Number) {
+                    try {
+                        int x = (int) o;
+                        short s = (short) x;
+                        week_list.add(s);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        break;
                     }
                 }
-                courseSectionClass.weekList = week_list;
-                result.add(courseSectionClass);
             }
-            connection.close();
-            if (result.isEmpty()) {
-                return List.of();
-            } else
-                return result;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new IntegrityViolationException();
+            courseSectionClass.weekList = week_list;
+            result.add(courseSectionClass);
         }
+        connection.close();
+        if (result.isEmpty()) {
+            return List.of();
+        } else
+            return result;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        throw new IntegrityViolationException();
     }
+}
 ```
 
 ​		以下为class表相关部分的节选：
@@ -249,11 +247,158 @@ private boolean checkSatisfiedCondition(int studentId, String prereStr) {
 
 ### 2）SearchCourse
 
+#### 2.目前思路
+
+首先，根据所给参数写出基础sql，然后根据所给CourseType的不同细分了五种case，在每种case里对sql进行微小调整后得到最后的查询sql。我们将class中的weekList拆分存储，但由于在查询中使用了`distinct`字样，所以每次查询到的结果依然可以代表一个单独的class。
+
+在搜索过程中，简单参数仅需进行等于或like条件判定即可，对于locations，使用了`Any()`方法。
+另外，由于传入时参数仅仅为”一教“、“荔园”等字样，而课程的实际地点为“一教406”、“荔园207”这样的字样，
+所以对原location list的每个元素后面加了%传入，然后用like匹配。
+
+```java
+String sql_basic_select =
+    "select distinct " +
+    "       co.course_id, co.course_name, co.credit, co.class_hour, co.grading ,\n" +
+    "       cs.section_id, cs.section_name, cs.total_capacity, cs.left_capacity,\n" +
+    "       cl.class_id, cl.instructor_id, i.first_name, i.last_name,\n" +
+    "       cl.day_of_week, cl.week_num, cl.class_begin, cl.class_end, cl.location,\n" +
+    "co.course_name || '[' || cs.section_name || ']'\n" +
+    "from course co\n" +
+    "    join course_section cs on co.course_id = cs.course_id\n" +
+    "    join classes cl on cs.section_id = cl.section_id\n" +
+    "    join instructor i on cl.instructor_id = i.instructor_id\n";
+
+String sql_basic_where =
+    "and (cs.course_id like ('%'|| ? ||'%') or ? is null)\n" +
+    "and (co.course_name || '[' || cs.section_name || ']' like ('%'|| ? ||'%') or ? is null)\n" +
+    "and (i.first_name like (? ||'%') or i.last_name like (? ||'%')\n" +
+    "    or (i.first_name || i.last_name) like (? ||'%')\n" +
+    "    or (i.first_name || ' ' || i.last_name) like (? ||'%') or ? is null)\n" +
+    "and (cl.day_of_week = ? or ? is null)\n" +
+    "and (? between cl.class_begin and cl.class_end or ? is null)\n" +
+    "and (cl.location like Any (?) or ? is null)\n";
+
+String sql;
+
+switch (searchCourseType) {
+    case ALL:
+        sql = sql_basic_select +
+            "where semester_id = ?\n"
+            + sql_basic_where
+            +"order by co.course_id, co.course_name || '[' || cs.section_name || ']' ";
+		//set PrepareStatement
+        break;
+
+    case MAJOR_COMPULSORY:
+    case MAJOR_ELECTIVE:
+        sql = sql_basic_select +
+            "join course_majors cm on co.course_id = cm.course_id\n" +
+            "    join student s on cm.major_id = s.major_id\n" +
+            "where s.student_id = ? and semester_id = ?\n"
+            + sql_basic_where;
+        if (searchCourseType == CourseType.MAJOR_COMPULSORY)
+            sql = sql + " and cm.course_type = 'MAJOR_COMPULSORY\n' ";
+        if (searchCourseType == CourseType.MAJOR_ELECTIVE)
+            sql = sql + " and cm.course_type = 'MAJOR_ELECTIVE'\n";
+        sql = sql + "order by co.course_id, co.course_name, cs.section_name";
+		//set PrepareStatement
+        break;
+
+    case CROSS_MAJOR:
+        sql = sql_basic_select +
+            "join course_majors cm on co.course_id = cm.course_id\n" +
+            "    join student s on cm.major_id <> s.major_id\n" +
+            "where s.student_id = ? and semester_id = ?\n"
+            + sql_basic_where
+            + "order by co.course_id, co.course_name, cs.section_name";
+        //set PrepareStatement
+        break;
+
+    case PUBLIC:
+        sql = sql_basic_select +
+            "join course_majors cm on co.course_id <> cm.course_id\n" +
+            "where semester_id = ?"
+            + sql_basic_where
+            + "order by co.course_id, co.course_name, cs.section_name";
+		//set PrepareStatement
+        break;
+}
+```
+
+
+
+使用当前的secion_id找到对应的所有class存入改searchCourseEntry。
+
+随后，关于冲突列表的寻找，使用了一个大sql语句实现。
+
+```java
+PreparedStatement st_conf = connection.prepareStatement(
+    "select course_name || '[' || section_name || ']' from(\n" +
+    "select distinct s2.course_name, s2.section_name\n" +
+    "from\n" +
+    "(select co1.course_id,\n" +
+    "       cl1.week_num, cl1.day_of_week, cl1.class_begin, cl1.class_end\n" +
+    "from course co1\n" +
+    "    join course_section cs1 on co1.course_id = cs1.course_id\n" +
+    "    join classes cl1 on cs1.section_id = cl1.section_id\n" +
+    "where cs1.section_id = ?) as s1 --当前section\n" +
+    "join\n" +
+    "(select co.course_id, co.course_name, cs.section_name,\n" +
+    "       cl.week_num, cl.day_of_week, cl.class_begin, cl.class_end\n" +
+    "    from course co\n" +
+    "    join course_section cs on co.course_id = cs.course_id\n" +
+    "    join classes cl on cs.section_id = cl.section_id\n" +
+    "    join student_selections ss on cs.section_id = ss.section_id\n" +
+    "where student_id = ? and semester_id = ?) s2 --学生选的\n" +
+    "on s2.course_id = s1.course_id\n" +
+    "or (s2.week_num = s1.week_num and s2.day_of_week = s1.day_of_week\n" +
+    "    and (  (s2.class_begin <= s1.class_begin and s2.class_end >= s1.class_end)\n" +
+    "        or (s2.class_begin >= s1.class_begin and s2.class_begin <= s1.class_end)\n" +
+    "        or (s2.class_end >= s1.class_begin and s2.class_end <= s1.class_end)))\n" +
+    ") sub\n" +
+    "order by course_name, section_name");
+st_conf.setInt(1, section.id);
+st_conf.setInt(2, studentId);
+st_conf.setInt(3, semesterId);
+
+ResultSet rs_conf = st_conf.executeQuery();
+boolean is_conflicted = false;
+while(rs_conf.next()){
+    is_conflicted = true;
+    conflict.add(rs_conf.getString(1));
+}
+```
+
+
+
+接下来，令rs指针向前移动，直到遇到下一个新的searchCourseEntry。
+
+```java
+while (rs.next()) {
+    if (!rs.getString(1).equals(course.id) || rs.getInt(6) != section.id) {
+        rs.previous();
+        break;
+    }
+}
+```
+
+关于四个ignore标签的实现，只需在其为true的时候进行对应条件的判断，若遇到需要过滤的条件，直接continue循环即可。
+
+```java
+if (ignoreFull)
+    if (section.leftCapacity == 0) continue;
+if (ignorePassed)
+    if (havePassedCourse(studentId,course.id)) continue;
+if (ignoreMissingPrerequisites)//caonima
+    if (!passedPrerequisitesForCourse(studentId,course.id)) continue;
+if (ignoreConflict && is_conflicted) continue;
+```
+
+
+
 #### 1.第一版思路
 
-起初，我们关于searchCourse的思路是这样的：
-
-​	首先，考虑到之后需要列出并过滤冲突课程列表，所以先把学生已经选了的课选出，并将已选section的course_id存入一个Hashset，
+在最开始，我们的想法是，由于考虑到之后需要列出并过滤冲突课程列表，所以先把学生已经选了的课选出，并将已选section的course_id存入一个Hashset，
 把已选class的{周、日、时间段}建立一个新的Schedule类对象并存入另一个Hashset。需要注意的是，这里重写了Schedule类的equals方法，认为只要两个schedule的周、日相同且时间段有冲突，则为相同的Schedule。之后仅需判断选中课程是否与这两个set里的元素冲突即可。
 
 ![image-20211231061449115](C:\Users\JR\AppData\Roaming\Typora\typora-user-images\image-20211231061449115.png)
@@ -327,37 +472,15 @@ while (rs_select.next()) {
 }
 ```
 
+在考虑conflict list时，在每次的while(rs.next())循环里，创建CourseSearchEntry并添加course和section，进行courseConflict判定，然后在classSet中添加当前class并进行timeConflict判定。
 
-
-conflict list的具体思路：在进行搜索时，由于在sql使用了distinct，故最后的返回表中会分出单独的class。
-
-于是，在每次的while(rs.next())循环里，创建CourseSearchEntry并添加course和section，进行courseConflict判定，
-
-然后在classSet中添加当前class并进行timeConflict判定。
-
-随后，在当前的while循环里嵌套另一个while(rs.next())循环，判断下一行中的course与section是否与当前相同，
-
-即是否还在当前CourseSearchEntry的范围内，若是，则继续添加class并进行timeConflict判定，
-
-直到出现不同的course时执行rs.previous或rs.next为null。
-
-需要注意的是，在这个嵌套的while中，如果已经有timeConflict标签，则不需再进行timeConflict判定；
-
-如果同时有timeConflict和ignoreConfilct标签，则class的添加也不需执行，
-
-只需让rs不断next到下一个不同的CourseSearchEntry即可，最后该CourseSearchEntry也不会添加到result中。
+随后，在当前的while循环里嵌套另一个while(rs.next())循环，判断下一行中的course与section是否与当前相同，即是否还在当前CourseSearchEntry的范围内，若是，则继续添加class并进行timeConflict判定，直到出现不同的course时执行rs.previous或rs.next为null。需要注意的是，在这个嵌套的while中，如果已经有timeConflict标签，则不需再进行timeConflict判定；如果同时有timeConflict和ignoreConfilct标签，则class的添加也不需执行，只需让rs不断next到下一个不同的CourseSearchEntry即可，最后该CourseSearchEntry也不会添加到result中。
 
 接下来，考虑搜索课程的过程，对于简单参数仅需进行等于或like条件判定即可，对于locations，使用了`Any()`方法。 另外，由于传入时参数仅仅为”一教“、“荔园”等字样，而课程的实际地点为“一教406”、“荔园207”这样的字样， 而any()又意外地会出现莫名bug，所以对原location list的每个元素后面加了%传入，然后用like匹配。 对于courseType，考虑根据传入的参数使用不同的sql语句进行查询。 ALL：不关联 MAJOR_COMPULSORY：student_major_id = course_major_id, type = comp MAJOR_ELECTIVE：=, type = elective CROSS_MAJOR：<> PUBLIC：关联，course_id <> major_course_id。
 
 接下来，关于四个ignore标签的实现，只需在其为true的时候进行对应条件的判断，当条件符合要求时再往答案list里添加即可。
 
-考虑到不怎么可用的的order by，把conflict改为了用sql去查找并order by 注意到文档里“Matches *any* class in the section”的说法，故直接搜索得到的section id下的class，删掉了优雅的写法。
-
-#### 2.第二版思路
-
-不得已我们必须转变思路。
-
-
+最后，考虑到这么写最终无法在数据库中使用order by 排序最后结果，放弃了在数据库中建新表并导入数据然后在排序后导出数据的做法。
 
 ## 2.3 Others
 
