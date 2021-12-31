@@ -100,7 +100,7 @@
 
 ​		CourseService是本次project代码量相对较多，难度相对较大的一个类。它承担了建立course表、prerequisite表和classes表等等功能，是本次project的核心模块之一。
 
-		### 1）先修课信息的存储
+### 1）先修课信息的存储
 
 ​			第一个难题便是如何将先修课的信息存储下来。先修课的结构比较复杂，有不断的“且”和“或”关系相互嵌套，无法简单直接地存储在prerequisite表里。因此，我们的首要目标便是将先修课信息的格式统一。于是，我们在MyCourseService首先实现了将先修课格式化的名为“prerequisiteToString”方法。
 
@@ -249,7 +249,7 @@ private boolean checkSatisfiedCondition(int studentId, String prereStr) {
 
 ### 2）SearchCourse
 
-	#### 1.第一版思路
+#### 1.第一版思路
 
 起初，我们关于searchCourse的思路是这样的：
 
@@ -347,11 +347,15 @@ conflict list的具体思路：在进行搜索时，由于在sql使用了distinc
 
 只需让rs不断next到下一个不同的CourseSearchEntry即可，最后该CourseSearchEntry也不会添加到result中。
 
+接下来，考虑搜索课程的过程，对于简单参数仅需进行等于或like条件判定即可，对于locations，使用了`Any()`方法。 另外，由于传入时参数仅仅为”一教“、“荔园”等字样，而课程的实际地点为“一教406”、“荔园207”这样的字样， 而any()又意外地会出现莫名bug，所以对原location list的每个元素后面加了%传入，然后用like匹配。 对于courseType，考虑根据传入的参数使用不同的sql语句进行查询。 ALL：不关联 MAJOR_COMPULSORY：student_major_id = course_major_id, type = comp MAJOR_ELECTIVE：=, type = elective CROSS_MAJOR：<> PUBLIC：关联，course_id <> major_course_id。
 
+接下来，关于四个ignore标签的实现，只需在其为true的时候进行对应条件的判断，当条件符合要求时再往答案list里添加即可。
+
+考虑到不怎么可用的的order by，把conflict改为了用sql去查找并order by 注意到文档里“Matches *any* class in the section”的说法，故直接搜索得到的section id下的class，删掉了优雅的写法。
 
 #### 2.第二版思路
 
-
+不得已我们必须转变思路。
 
 
 
@@ -412,7 +416,7 @@ public static String getFullName(String firstName, String lastName){
 
 ## 2.4 遇到的问题
 
-### 1）
+### 1）enrollCourse
 
 ​		好不容易写完了所有内容，然后一跑发现enrollCourse居然需要跑整整20分钟，1200秒。这个结果显然是不可以被接受的。
 
@@ -424,7 +428,7 @@ public static String getFullName(String firstName, String lastName){
 
 ![image-20211231042815141](C:\Users\JR\AppData\Roaming\Typora\typora-user-images\image-20211231042815141.png)
 
-### 2)
+### 2）dropCourse
 
 ​		发现dropCourse的得分是零分，并且时间奇慢无比。时间的优化应该可以通过加入index解决，但是我们左思右想也不明白为什么是0，ProjectJudge也并没有给出原因和错误信息。
 
@@ -434,7 +438,7 @@ public static String getFullName(String firstName, String lastName){
 
 ![image-20211231043549307](C:\Users\JR\AppData\Roaming\Typora\typora-user-images\image-20211231043549307.png)
 
-### 3)
+### 3）enrollCourse2
 
 ​		enrollCourse2的test给我们造成了许多困扰，甚至每次可以正确通过的点数都不是一定的。
 
@@ -452,7 +456,7 @@ public static String getFullName(String firstName, String lastName){
 
 ​		最后把判断语句改成了semester相等就通过了所有测试点。
 
-### 4)
+### 4）autocommit优化
 
 ​		一个未成功的优化方法：关闭autocommit
 
@@ -460,11 +464,13 @@ public static String getFullName(String firstName, String lastName){
 
 ​		![image-20211231050350411](C:\Users\JR\AppData\Roaming\Typora\typora-user-images\image-20211231050350411.png)
 
-## 3 本地测试样例完成情况
+# 3 本地测试样例完成情况
 
-## 4 可进行的优化
 
-### 1）减少通讯次数
+
+# 4 可进行的优化
+
+## 1）减少通讯次数
 
 ​		理论上我们可以通过合并查询语句的方式，或者使用PreparedStatement的Batch功能。
 
@@ -472,13 +478,13 @@ public static String getFullName(String firstName, String lastName){
 
 ​		本次project没有使用batch的原因是，不同的方法分布在不同的接口里，例化后也只能开启关闭单独的通讯，无法批量操作。
 
-### 2）关闭autocommit
+## 2）关闭autocommit
 
 ​		自动提交模式意味着除非显式地开始一个事务，否则每个查询都被当做一个单独的事务自动执行。
 
 ​		理论上关闭autocommit可以使多条数据库插入或更新得效率提升。
 
-### 3) 在多表联查时，需要考虑连接顺序问题
+## 3）在多表联查时，需要考虑连接顺序问题
 
 ​		当postgresql中进行查询时，如果多表是通过逗号，而不是join连接，那么连接顺序是多表的笛卡尔积中取最优的。
 
@@ -492,15 +498,15 @@ public static String getFullName(String firstName, String lastName){
 
 参考来源：`https://www.cnblogs.com/churao/p/8494324.html`
 
-### 4)外键关联的删除
+## 4）外键关联的删除
 
- 如果表的有外键的话，每次操作都没去check外键整合性。因此比较慢。数据导入后再建立外键也是一种选择。（但是这个方法倍ban掉了）
+ 如果表的有外键的话，每次操作都没去check外键整合性。因此比较慢。数据导入后再建立外键也是一种选择。（但是这个方法被ban掉了qwq）
 
 
 
-## 5 总结与反思
+# 5 总结与反思
 
-### 5.1 总结
+## 5.1 总结
 
 ​	本次project的难度不低，既考验了我们的Java功底，又需要写出高效SQL代码的能力。
 
@@ -508,7 +514,7 @@ public static String getFullName(String firstName, String lastName){
 
 ​		1.接口实现
 
-​		2.样例测试+自己造样例
+​		2.样例测试+自己制造样例
 
 ​		3.debug的技巧和心态
 
@@ -520,7 +526,7 @@ public static String getFullName(String firstName, String lastName){
 
 ​	不言而喻的是，经过此次磨砺，我们都受益匪浅。希望日后能不断提升自己的能力，力求将project做得更加优秀，让自己的知识水平更上一层楼。
 
-### 5.2 反思
+## 5.2 反思
 
 ​		此次project我们仍有许多可以提升的空间。例如，对时间的安排和任务的分配是不是可以更加合理；一些想法只停留在计划而没有去实现；我们的效率是不是还有提升的方法......
 
