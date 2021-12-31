@@ -31,4 +31,13 @@ public class CourseSection {
     public int hashCode() {
         return Objects.hash(id, name, totalCapacity, leftCapacity);
     }
+    @Override
+    public String toString() {
+        return "CourseSection{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", totalCapacity=" + totalCapacity +
+                ", leftCapacity=" + leftCapacity +
+                '}';
+    }
 }

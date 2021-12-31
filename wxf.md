@@ -52,4 +52,4 @@ PUBLIC：关联，course_id <> major_course_id
 
 
 
-关于page
+总结：应该先把tostring写好

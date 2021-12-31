@@ -45,225 +45,347 @@ public class MyHolyStudentService implements StudentService {
              boolean ignoreFull, boolean ignoreConflict, boolean ignorePassed, boolean ignoreMissingPrerequisites,
              int pageSize, int pageIndex) {
 
-        if (studentId == 11718486) {
-            System.out.println("here");
-        }
-
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection()) {
 
             List<CourseSearchEntry> result = new ArrayList<>();
 
-            //todo page是干什么吃的，不明白
             //todo connect close？
 
             //查找课程
             String sql_basic_select =
-                    "select distinct " +
-                            "       co.course_id, co.course_name, co.credit, co.class_hour, co.grading ,\n" +
-                            "       cs.section_id, cs.section_name, cs.total_capacity, cs.left_capacity,\n" +
-                            "       cl.class_id, cl.instructor_id, i.first_name, i.last_name,\n" +
-                            "       cl.day_of_week, cl.week_num, cl.class_begin, cl.class_end, cl.location\n" +
-                            "from course co\n" +
-                            "    join course_section cs on co.course_id = cs.course_id\n" +
-                            "    join classes cl on cs.section_id = cl.section_id\n" +
-                            "    join instructor i on cl.instructor_id = i.instructor_id\n";
+                "select distinct " +
+                        "       co.course_id, co.course_name, co.credit, co.class_hour, co.grading ,\n" +
+                        "       cs.section_id, cs.section_name, cs.total_capacity, cs.left_capacity,\n" +
+                        "       cl.class_id, cl.instructor_id, i.first_name, i.last_name,\n" +
+                        "       cl.day_of_week, cl.week_num, cl.class_begin, cl.class_end, cl.location,\n" +
+                                "co.course_name || '[' || cs.section_name || ']'\n" +
+                        "from course co\n" +
+                        "    join course_section cs on co.course_id = cs.course_id\n" +
+                        "    join classes cl on cs.section_id = cl.section_id\n" +
+                        "    join instructor i on cl.instructor_id = i.instructor_id\n";
 
             String sql_basic_where =
-                    "and (cs.course_id like ('%'|| ? ||'%') or ? is null)\n" +
-                            "and (co.course_name || '[' || cs.section_name || ']' like ('%'|| ? ||'%') or ? is null)\n" +
-                            "and (i.first_name like (? ||'%') or i.last_name like (? ||'%')\n" +
-                            "    or (i.first_name || i.last_name) like (? ||'%')\n" +
-                            "    or (i.first_name || ' ' || i.last_name) like (? ||'%') or ? is null)\n" +
-                            "and (cl.day_of_week = ? or ? is null)\n" +
-                            "and (? between cl.class_begin and cl.class_end or ? is null)\n" +
-                            "and (cl.location like Any (?) or ? is null)\n" +
-                            "order by co.course_id, co.course_name, cs.section_name";
+                "and (cs.course_id like ('%'|| ? ||'%') or ? is null)\n" +
+                        "and (co.course_name || '[' || cs.section_name || ']' like ('%'|| ? ||'%') or ? is null)\n" +
+                        "and (i.first_name like (? ||'%') or i.last_name like (? ||'%')\n" +
+                        "    or (i.first_name || i.last_name) like (? ||'%')\n" +
+                        "    or (i.first_name || ' ' || i.last_name) like (? ||'%') or ? is null)\n" +
+                        "and (cl.day_of_week = ? or ? is null)\n" +
+                        "and (? between cl.class_begin and cl.class_end or ? is null)\n" +
+                        "and (cl.location like Any (?) or ? is null)\n";
 
             String sql;
+            PreparedStatement st = null;
+            ResultSet rs;
 
-            switch (searchCourseType){
+            switch (searchCourseType) {
                 case ALL:
                     sql = sql_basic_select +
                             "where semester_id = ?\n"
-                            + sql_basic_where;
+                            + sql_basic_where
+                            +"order by co.course_id, co.course_name || '[' || cs.section_name || ']' ";
 
-                    PreparedStatement st = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-                    st.setInt(1,semesterId);
-                    st.setString(2,searchCid);
-                    st.setString(3,searchCid);
-                    st.setString(4,searchName);
-                    st.setString(5,searchName);
-                    st.setString(6,searchInstructor);
-                    st.setString(7,searchInstructor);
-                    st.setString(8,searchInstructor);
-                    st.setString(9,searchInstructor);
-                    st.setString(10,searchInstructor);
-                    if (searchDayOfWeek == null){
+                    st = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                    st.setInt(1, semesterId);
+                    st.setString(2, searchCid);
+                    st.setString(3, searchCid);
+                    st.setString(4, searchName);
+                    st.setString(5, searchName);
+                    st.setString(6, searchInstructor);
+                    st.setString(7, searchInstructor);
+                    st.setString(8, searchInstructor);
+                    st.setString(9, searchInstructor);
+                    st.setString(10, searchInstructor);
+                    if (searchDayOfWeek == null) {
                         st.setNull(11, Types.INTEGER);
                         st.setNull(12, Types.INTEGER);
+                    } else {
+                        st.setInt(11, searchDayOfWeek.getValue());
+                        st.setInt(12, searchDayOfWeek.getValue());
                     }
-                    else{
-                        st.setInt(11,searchDayOfWeek.getValue());
-                        st.setInt(12,searchDayOfWeek.getValue());
-                    }
-                    if (searchClassTime == null){
+                    if (searchClassTime == null) {
                         st.setNull(13, Types.INTEGER);
                         st.setNull(14, Types.INTEGER);
+                    } else {
+                        st.setInt(13, searchClassTime);
+                        st.setInt(14, searchClassTime);
                     }
-                    else{
-                        st.setInt(13,searchClassTime);
-                        st.setInt(14,searchClassTime);
-                    }
-                    if (searchClassLocations == null){
+                    if (searchClassLocations == null) {
                         st.setNull(15, Types.ARRAY);
                         st.setNull(16, Types.VARCHAR);
-                    }
-                    else{
+                    } else {
                         List<String> newLocation = new ArrayList<>();
-                        for (String s : searchClassLocations)  newLocation.add(s + "%");
-                        st.setArray(15,connection.createArrayOf("varchar",newLocation.toArray()));
-                        st.setString(16,"notNull"); //非空不影响
+                        for (String s : searchClassLocations) newLocation.add(s + "%");
+                        st.setArray(15, connection.createArrayOf("varchar", newLocation.toArray()));
+                        st.setString(16, "notNull"); //非空不影响
                     }
 
-                    ResultSet rs = st.executeQuery();
-                    int cnt = 0;
-                    //每一个循环添加一个courseEntry
-                    while(rs.next()){
-                        CourseSearchEntry cse = new CourseSearchEntry();
-                        Course course = new Course();
-                        CourseSection section = new CourseSection();
-                        Set<CourseSectionClass> classes = new HashSet<>();
-                        List<String> conflict = new ArrayList<>();
-
-                        course.id = rs.getString(1);
-                        course.name = rs.getString(2);
-                        course.credit = rs.getInt(3);
-                        course.classHour = rs.getInt(4);
-
-                        String grading = rs.getString(5);
-                        if (grading.equals("PASS_OR_FAIL"))
-                            course.grading = Course.CourseGrading.PASS_OR_FAIL;
-                        else course.grading = Course.CourseGrading.HUNDRED_MARK_SCORE;
-
-                        section.id = rs.getInt(6);
-                        section.name = rs.getString(7);
-                        section.totalCapacity = rs.getInt(8);
-                        section.leftCapacity = rs.getInt(8);//todo
-
-                        if (ignoreFull)
-                            if (section.leftCapacity == 0) continue;
-
-                        //todo 有优化空间的，因为又调用了一个sql
-                        if (ignorePassed)
-                            if (havePassedCourse(studentId,course.id)) continue;
-                        if (ignoreMissingPrerequisites)
-                            if (passedPrerequisitesForCourse(studentId,course.id)) continue;
-
-                        //class部分 根据找到的section找到对应的所有class
-                        PreparedStatement st_findClass = connection.prepareStatement(
-                        "select cl.class_id, i.instructor_id, i.first_name, i.last_name,\n" +
-                            "       cl.day_of_week, cl.week_num,\n" +
-                            "       cl.class_begin, cl.class_end, cl.location\n" +
-                            "from classes cl\n" +
-                            "    join course_section cs on cl.section_id = cs.section_id\n" +
-                            "    join instructor i on cl.instructor_id = i.instructor_id\n" +
-                            "where cl.section_id = ?");
-                        st_findClass.setInt(1,section.id);
-                        ResultSet rs_findClass = st_findClass.executeQuery();
-
-                        while(rs_findClass.next()){
-                            CourseSectionClass lesson = new CourseSectionClass();
-                            lesson.id = rs_findClass.getInt(1);
-
-                            Instructor ins = new Instructor();
-                            ins.id = rs_findClass.getInt(2);
-                            ins.fullName = MyUserService.getFullName(rs_findClass.getString(3),rs_findClass.getString(4));
-                            lesson.instructor = ins;
-
-                            lesson.dayOfWeek = DayOfWeek.of(rs_findClass.getInt(5));
-                            lesson.classBegin = rs_findClass.getShort(7);
-                            lesson.classEnd = rs_findClass.getShort(8);
-                            lesson.location = rs_findClass.getString(9);
-
-                            PreparedStatement week_st = connection.prepareStatement("" +
-                                    "select week_num from classes where class_id = ?");
-                            week_st.setInt(1, rs_findClass.getInt(1));
-                            ResultSet week_rs = week_st.executeQuery();
-                            lesson.weekList = new HashSet<>();
-                            while (week_rs.next())
-                                lesson.weekList.add(week_rs.getShort(1));
-
-                            classes.add(lesson);
-                        }
-
-                        // conflict judge 一下就能找出courseConflict和所有class的timeConflict，太优雅了！
-                        PreparedStatement st_conf = connection.prepareStatement(
-                        "select course_name || '[' || section_name || ']' from(\n" +
-                                "select distinct s2.course_name, s2.section_name\n" +
-                                "from\n" +
-                                "(select co1.course_id,\n" +
-                                "       cl1.week_num, cl1.day_of_week, cl1.class_begin, cl1.class_end\n" +
-                                "from course co1\n" +
-                                "    join course_section cs1 on co1.course_id = cs1.course_id\n" +
-                                "    join classes cl1 on cs1.section_id = cl1.section_id\n" +
-                                "where cs1.section_id = ?) as s1 --当前section\n" +
-                                "join\n" +
-                                "(select co.course_id, co.course_name, cs.section_name,\n" +
-                                "       cl.week_num, cl.day_of_week, cl.class_begin, cl.class_end\n" +
-                                "    from course co\n" +
-                                "    join course_section cs on co.course_id = cs.course_id\n" +
-                                "    join classes cl on cs.section_id = cl.section_id\n" +
-                                "    join student_selections ss on cs.section_id = ss.section_id\n" +
-                                "where student_id = ? and semester_id = ?) s2 --学生选的\n" +
-                                "on s2.course_id = s1.course_id\n" +
-                                "or (s2.week_num = s1.week_num and s2.day_of_week = s1.day_of_week\n" +
-                                "    and (  (s2.class_begin <= s1.class_begin and s2.class_end >= s1.class_end)\n" +
-                                "        or (s2.class_begin >= s1.class_begin and s2.class_begin <= s1.class_end)\n" +
-                                "        or (s2.class_end >= s1.class_begin and s2.class_end <= s1.class_end)))\n" +
-                                ") sub\n" +
-                                "order by course_name, section_name");
-                        st_conf.setInt(1, section.id);
-                        st_conf.setInt(2, studentId);
-                        st_conf.setInt(3, semesterId);
-
-                        ResultSet rs_conf = st_conf.executeQuery();
-                        boolean is_conflicted = false;
-                        while(rs_conf.next()){
-                            is_conflicted = true;
-                            conflict.add(rs_conf.getString(1));
-                        }
-
-                        //让rs next到下一个新的course
-                        while (rs.next()) {
-                                if (!rs.getString(1).equals(course.id) || rs.getInt(6) != section.id) {
-                                    rs.previous();
-                                    break;
-                                }
-                        }
-
-                        if (ignoreConflict && is_conflicted) continue;
-                        cse.course = course;
-                        cse.section = section;
-                        cse.sectionClasses = classes;
-                        cse.conflictCourseNames = conflict;
-                        
-                        result.add(cse);
-                    }
                     break;
 
                 case MAJOR_COMPULSORY:
                 case MAJOR_ELECTIVE:
-
+//                    sql = sql_basic_select +
+//                            "join course_majors cm on co.course_id = cm.course_id\n" +
+//                        "    join student s on cm.major_id = s.major_id\n" +
+//                            "where s.student_id = ? and semester_id = ?\n"
+//                            + sql_basic_where;
+//                    if (searchCourseType == CourseType.MAJOR_COMPULSORY)
+//                        sql = sql + " and cm.course_type = 'MAJOR_COMPULSORY\n' ";
+//                    if (searchCourseType == CourseType.MAJOR_ELECTIVE)
+//                        sql = sql + " and cm.course_type = 'MAJOR_ELECTIVE'\n";
+//                    sql = sql + "order by co.course_id, co.course_name, cs.section_name";
+//
+//                    st = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+//                    st.setInt(1, studentId);
+//                    st.setInt(2, semesterId);
+//                    st.setString(3, searchCid);
+//                    st.setString(4, searchCid);
+//                    st.setString(5, searchName);
+//                    st.setString(6, searchName);
+//                    st.setString(7, searchInstructor);
+//                    st.setString(8, searchInstructor);
+//                    st.setString(9, searchInstructor);
+//                    st.setString(10, searchInstructor);
+//                    st.setString(11, searchInstructor);
+//                    if (searchDayOfWeek == null) {
+//                        st.setNull(12, Types.INTEGER);
+//                        st.setNull(13, Types.INTEGER);
+//                    } else {
+//                        st.setInt(12, searchDayOfWeek.getValue());
+//                        st.setInt(13, searchDayOfWeek.getValue());
+//                    }
+//                    if (searchClassTime == null) {
+//                        st.setNull(14, Types.INTEGER);
+//                        st.setNull(15, Types.INTEGER);
+//                    } else {
+//                        st.setInt(14, searchClassTime);
+//                        st.setInt(15, searchClassTime);
+//                    }
+//                    if (searchClassLocations == null) {
+//                        st.setNull(16, Types.ARRAY);
+//                        st.setNull(17, Types.VARCHAR);
+//                    } else {
+//                        List<String> newLocation = new ArrayList<>();
+//                        for (String s : searchClassLocations) newLocation.add(s + "%");
+//                        st.setArray(16, connection.createArrayOf("varchar", newLocation.toArray()));
+//                        st.setString(17, "notNull"); //非空不影响
+//                    }
                     break;
 
                 case CROSS_MAJOR:
-                    throw new UnsupportedOperationException();
-                    //break;
+//                    sql = sql_basic_select +
+//                            "join course_majors cm on co.course_id = cm.course_id\n" +
+//                            "    join student s on cm.major_id <> s.major_id\n" +
+//                            "where s.student_id = ? and semester_id = ?\n"
+//                            + sql_basic_where
+//                            + "order by co.course_id, co.course_name, cs.section_name";
+//
+//                    st = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+//                    st.setInt(1, studentId);
+//                    st.setInt(2, semesterId);
+//                    st.setString(3, searchCid);
+//                    st.setString(4, searchCid);
+//                    st.setString(5, searchName);
+//                    st.setString(6, searchName);
+//                    st.setString(7, searchInstructor);
+//                    st.setString(8, searchInstructor);
+//                    st.setString(9, searchInstructor);
+//                    st.setString(10, searchInstructor);
+//                    st.setString(11, searchInstructor);
+//                    if (searchDayOfWeek == null) {
+//                        st.setNull(12, Types.INTEGER);
+//                        st.setNull(13, Types.INTEGER);
+//                    } else {
+//                        st.setInt(12, searchDayOfWeek.getValue());
+//                        st.setInt(13, searchDayOfWeek.getValue());
+//                    }
+//                    if (searchClassTime == null) {
+//                        st.setNull(14, Types.INTEGER);
+//                        st.setNull(15, Types.INTEGER);
+//                    } else {
+//                        st.setInt(14, searchClassTime);
+//                        st.setInt(15, searchClassTime);
+//                    }
+//                    if (searchClassLocations == null) {
+//                        st.setNull(16, Types.ARRAY);
+//                        st.setNull(17, Types.VARCHAR);
+//                    } else {
+//                        List<String> newLocation = new ArrayList<>();
+//                        for (String s : searchClassLocations) newLocation.add(s + "%");
+//                        st.setArray(16, connection.createArrayOf("varchar", newLocation.toArray()));
+//                        st.setString(17, "notNull"); //非空不影响
+//                    }
+                    break;
 
                 case PUBLIC:
-                    throw new UnsupportedOperationException();
-                    //break;
+//                    sql = sql_basic_select +
+//                            "join course_majors cm on co.course_id <> cm.course_id\n" +
+//                            "where semester_id = ?"
+//                            + sql_basic_where
+//                            + "order by co.course_id, co.course_name, cs.section_name";
+//
+//                    st = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+//                    st.setInt(1, semesterId);
+//                    st.setString(2, searchCid);
+//                    st.setString(3, searchCid);
+//                    st.setString(4, searchName);
+//                    st.setString(5, searchName);
+//                    st.setString(6, searchInstructor);
+//                    st.setString(7, searchInstructor);
+//                    st.setString(8, searchInstructor);
+//                    st.setString(9, searchInstructor);
+//                    st.setString(10, searchInstructor);
+//                    if (searchDayOfWeek == null) {
+//                        st.setNull(11, Types.INTEGER);
+//                        st.setNull(12, Types.INTEGER);
+//                    } else {
+//                        st.setInt(11, searchDayOfWeek.getValue());
+//                        st.setInt(12, searchDayOfWeek.getValue());
+//                    }
+//                    if (searchClassTime == null) {
+//                        st.setNull(13, Types.INTEGER);
+//                        st.setNull(14, Types.INTEGER);
+//                    } else {
+//                        st.setInt(13, searchClassTime);
+//                        st.setInt(14, searchClassTime);
+//                    }
+//                    if (searchClassLocations == null) {
+//                        st.setNull(15, Types.ARRAY);
+//                        st.setNull(16, Types.VARCHAR);
+//                    } else {
+//                        List<String> newLocation = new ArrayList<>();
+//                        for (String s : searchClassLocations) newLocation.add(s + "%");
+//                        st.setArray(15, connection.createArrayOf("varchar", newLocation.toArray()));
+//                        st.setString(16, "notNull"); //非空不影响
+//                    }
+                    break;
             }
+            if (st == null) return List.of();
+            rs = st.executeQuery();
+            //每一个循环添加一个courseEntry
+            while(rs.next()){
+                CourseSearchEntry cse = new CourseSearchEntry();
+                Course course = new Course();
+                CourseSection section = new CourseSection();
+                Set<CourseSectionClass> classes = new HashSet<>();
+                List<String> conflict = new ArrayList<>();
+
+                course.id = rs.getString(1);
+                course.name = rs.getString(2);
+                course.credit = rs.getInt(3);
+                course.classHour = rs.getInt(4);
+
+                String grading = rs.getString(5);
+                if (grading.equals("PASS_OR_FAIL"))
+                    course.grading = Course.CourseGrading.PASS_OR_FAIL;
+                else course.grading = Course.CourseGrading.HUNDRED_MARK_SCORE;
+
+                section.id = rs.getInt(6);
+                section.name = rs.getString(7);
+                section.totalCapacity = rs.getInt(8);
+                section.leftCapacity = rs.getInt(9);
+
+                if (ignoreFull)
+                    if (section.leftCapacity == 0) continue;
+
+                //todo 有优化空间的，因为又调用了一个sql
+                if (ignorePassed)
+                    if (havePassedCourse(studentId,course.id)) continue;
+                if (ignoreMissingPrerequisites)//caonima
+                    if (!passedPrerequisitesForCourse(studentId,course.id)) continue;
+
+                //class部分 根据找到的section找到对应的所有class
+                PreparedStatement st_findClass = connection.prepareStatement(
+                        "select cl.class_id, i.instructor_id, i.first_name, i.last_name,\n" +
+                                "       cl.day_of_week, cl.week_num,\n" +
+                                "       cl.class_begin, cl.class_end, cl.location\n" +
+                                "from classes cl\n" +
+                                "    join course_section cs on cl.section_id = cs.section_id\n" +
+                                "    join instructor i on cl.instructor_id = i.instructor_id\n" +
+                                "where cl.section_id = ?");
+                st_findClass.setInt(1,section.id);
+                ResultSet rs_findClass = st_findClass.executeQuery();
+
+                while(rs_findClass.next()){
+                    CourseSectionClass lesson = new CourseSectionClass();
+                    lesson.id = rs_findClass.getInt(1);
+
+                    Instructor ins = new Instructor();
+                    ins.id = rs_findClass.getInt(2);
+                    ins.fullName = MyUserService.getFullName(rs_findClass.getString(3),rs_findClass.getString(4));
+                    lesson.instructor = ins;
+
+                    lesson.dayOfWeek = DayOfWeek.of(rs_findClass.getInt(5));
+                    lesson.classBegin = rs_findClass.getShort(7);
+                    lesson.classEnd = rs_findClass.getShort(8);
+                    lesson.location = rs_findClass.getString(9);
+
+                    PreparedStatement week_st = connection.prepareStatement("" +
+                            "select week_num from classes where class_id = ?");
+                    week_st.setInt(1, rs_findClass.getInt(1));
+                    ResultSet week_rs = week_st.executeQuery();
+                    lesson.weekList = new HashSet<>();
+                    while (week_rs.next())
+                        lesson.weekList.add(week_rs.getShort(1));
+
+                    classes.add(lesson);
+                }
+                if (classes.size() == 0) continue;
+
+                // conflict judge 一下就能找出courseConflict和所有class的timeConflict，太优雅了！
+                PreparedStatement st_conf = connection.prepareStatement(
+                "select course_name || '[' || section_name || ']' from(\n" +
+                        "select distinct s2.course_name, s2.section_name\n" +
+                        "from\n" +
+                        "(select co1.course_id,\n" +
+                        "       cl1.week_num, cl1.day_of_week, cl1.class_begin, cl1.class_end\n" +
+                        "from course co1\n" +
+                        "    join course_section cs1 on co1.course_id = cs1.course_id\n" +
+                        "    join classes cl1 on cs1.section_id = cl1.section_id\n" +
+                        "where cs1.section_id = ?) as s1 --当前section\n" +
+                        "join\n" +
+                        "(select co.course_id, co.course_name, cs.section_name,\n" +
+                        "       cl.week_num, cl.day_of_week, cl.class_begin, cl.class_end\n" +
+                        "    from course co\n" +
+                        "    join course_section cs on co.course_id = cs.course_id\n" +
+                        "    join classes cl on cs.section_id = cl.section_id\n" +
+                        "    join student_selections ss on cs.section_id = ss.section_id\n" +
+                        "where student_id = ? and semester_id = ?) s2 --学生选的\n" +
+                        "on s2.course_id = s1.course_id\n" +
+                        "or (s2.week_num = s1.week_num and s2.day_of_week = s1.day_of_week\n" +
+                        "    and (  (s2.class_begin <= s1.class_begin and s2.class_end >= s1.class_end)\n" +
+                        "        or (s2.class_begin >= s1.class_begin and s2.class_begin <= s1.class_end)\n" +
+                        "        or (s2.class_end >= s1.class_begin and s2.class_end <= s1.class_end)))\n" +
+                        ") sub\n" +
+                        "order by course_name, section_name");
+                st_conf.setInt(1, section.id);
+                st_conf.setInt(2, studentId);
+                st_conf.setInt(3, semesterId);
+
+                ResultSet rs_conf = st_conf.executeQuery();
+                boolean is_conflicted = false;
+                while(rs_conf.next()){
+                    is_conflicted = true;
+                    conflict.add(rs_conf.getString(1));
+                }
+
+                //让rs next到下一个新的course
+                while (rs.next()) {
+                    if (!rs.getString(1).equals(course.id) || rs.getInt(6) != section.id) {
+                        rs.previous();
+                        break;
+                    }
+                }
+
+                if (ignoreConflict && is_conflicted) continue;
+                cse.course = course;
+                cse.section = section;
+                cse.sectionClasses = classes;
+                cse.conflictCourseNames = conflict;
+
+                result.add(cse);
+            }
+
             connection.close();
             
             List<CourseSearchEntry> finalResult = new ArrayList<>();
@@ -280,7 +402,6 @@ public class MyHolyStudentService implements StudentService {
             e.printStackTrace();
             throw new EntityNotFoundException();
         }
-        //return List.of();
     }
 
     private boolean isEnrolledSection(int studentId, int sectionId, Connection connection) {

@@ -36,4 +36,15 @@ public class Course {
     public int hashCode() {
         return Objects.hash(id, name, credit, classHour, grading);
     }
+
+    @Override
+    public String toString() {
+        return "Course{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", credit=" + credit +
+                ", classHour=" + classHour +
+                ", grading=" + grading +
+                '}';
+    }
 }
