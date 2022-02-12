@@ -1,5 +1,9 @@
 # CS307 Spring 2021 Database Project 2
 
+Final mark: 90/100
+
+Shit mountain codes. Do not ever try to read!
+
 ## 1. Source code
 
 Download link：
